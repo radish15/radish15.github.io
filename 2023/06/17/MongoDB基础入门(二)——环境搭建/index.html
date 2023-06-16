@@ -1,0 +1,468 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>MongoDB基础入门(二)——环境搭建 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1、Linux安装MongoDB环境准备 centos7 MongoDB社区版 Version6.0.6   下载地址：https://www.mongodb.com/try/download/community-kubernetes-operator   使用wget下载 12wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-r">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MongoDB基础入门(二)——环境搭建">
+<meta property="og:url" content="http://example.com/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="1、Linux安装MongoDB环境准备 centos7 MongoDB社区版 Version6.0.6   下载地址：https://www.mongodb.com/try/download/community-kubernetes-operator   使用wget下载 12wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-r">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/mongodb.png">
+<meta property="article:published_time" content="2023-06-16T16:35:00.000Z">
+<meta property="article:modified_time" content="2023-06-16T18:11:07.417Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="MongoDB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/mongodb.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MongoDB基础入门(二)——环境搭建',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-06-17 02:11:07'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">MongoDB基础入门(二)——环境搭建</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-16T16:35:00.000Z" title="发表于 2023-06-17 00:35:00">2023-06-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-06-16T18:11:07.417Z" title="更新于 2023-06-17 02:11:07">2023-06-17</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MongoDB基础入门(二)——环境搭建"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h1 id="1、Linux安装MongoDB"><a href="#1、Linux安装MongoDB" class="headerlink" title="1、Linux安装MongoDB"></a>1、Linux安装MongoDB</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><ul>
+<li>centos7</li>
+<li>MongoDB社区版 Version6.0.6</li>
+</ul>
+<blockquote>
+<p>下载地址：<a target="_blank" rel="noopener" href="https://www.mongodb.com/try/download/community-kubernetes-operator">https://www.mongodb.com/try/download/community-kubernetes-operator</a></p>
+</blockquote>
+<p><img src="/../img/1686933567764.png" alt="1686933567764"></p>
+<p>使用wget下载</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-6.0.6.tgz</span><br><span class="line">tar -zxvf mongodb-linux-x86_64-rhel70-6.0.6.tgz</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h2 id="启动MongoDB-Server"><a href="#启动MongoDB-Server" class="headerlink" title="启动MongoDB Server"></a>启动MongoDB Server</h2><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建dbpath和logpath</span></span><br><span class="line">mkdir -p /mongodb/data /mongodb/log</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">进入mongodb目录，启动mongodb服务</span></span><br><span class="line">./bin/mongod --port=27017 --dbpath=/mongodb/data --logpath=/mongodb/log/mongodb.log --bind_ip=0.0.0.0 --fork</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>–dbpath :指定数据文件存放目录</p>
+<p>–logpath :指定日志文件，注意是指定文件不是目录 </p>
+<p>–logappend :使用追加的方式记录日志 </p>
+<p>–port:指定端口，默认为27017 </p>
+<p>–bind_ip:默认只监听localhost网卡 </p>
+<p>–fork: 后台启动 </p>
+<p>–auth: 开启认证模式 </p>
+</blockquote>
+<p><img src="/../img/1686934170477.png" alt="1686934170477"></p>
+<h2 id="添加环境变量"><a href="#添加环境变量" class="headerlink" title="添加环境变量"></a>添加环境变量</h2><p>修改<code>/etc/profile</code>，添加环境变量,方便执行MongoDB命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export MONGODB_HOME=/usr/local/soft/mongodb</span><br><span class="line">PATH=$PATH:$MONGODB_HOME/bin</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后执行<code>source /etc/profile</code> 重新加载环境变量</p>
+<h2 id="利用配置文件启动服务"><a href="#利用配置文件启动服务" class="headerlink" title="利用配置文件启动服务"></a>利用配置文件启动服务</h2><p>新增<code>/mongodb/conf/mongo.conf</code>文件，内容如下：（<font style="color:red">注意：一定要yaml格式</font>）</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">systemLog:</span></span><br><span class="line">  <span class="attr">destination:</span> <span class="string">file</span></span><br><span class="line"><span class="attr">systemLog:</span></span><br><span class="line">  <span class="attr">destination:</span> <span class="string">file</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">/mongodb/log/mongod.log</span> <span class="comment"># log path</span></span><br><span class="line">  <span class="attr">logAppend:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">storage:</span></span><br><span class="line">  <span class="attr">dbPath:</span> <span class="string">/mongodb/data</span> <span class="comment"># data directory</span></span><br><span class="line">  <span class="attr">engine:</span> <span class="string">wiredTiger</span> <span class="comment"># 存储引擎</span></span><br><span class="line">  <span class="attr">journal:</span></span><br><span class="line">    <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">net:</span></span><br><span class="line">  <span class="attr">bindIp:</span> <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">27017</span></span><br><span class="line"><span class="attr">processManagement:</span></span><br><span class="line">  <span class="attr">fork:</span> <span class="literal">true</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>启动mongod</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongod -f /mongodb/conf/mongo.conf</span><br></pre></td></tr></tbody></table></figure>
+
+<p><font style="color:red">-f 选项表示将使用配置文件启动mongodb </font></p>
+<h2 id="关闭MongoDB服务"><a href="#关闭MongoDB服务" class="headerlink" title="关闭MongoDB服务"></a>关闭MongoDB服务</h2><p>方式1：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongod --port=27017 --dbpath=/mongodb/data --shutdown</span><br></pre></td></tr></tbody></table></figure>
+
+<p>方式2：进入mongosh</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">use admin</span><br><span class="line">db.shutdownServer()</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h1 id="2、mongosh的使用"><a href="#2、mongosh的使用" class="headerlink" title="2、mongosh的使用"></a>2、mongosh的使用</h1><p>mongosh是MongoDB的交互式JavaScript Shell界面，它为系统管理员提供了强大的界面，并为开发人员提供了直接测试数据库查询和操作的方法。</p>
+<blockquote>
+<p>注意：MongoDB 6.0 移除了mongo，使用mongosh </p>
+<p>mongosh下载地址：<a target="_blank" rel="noopener" href="https://www.mongodb.com/try/download/shell">https://www.mongodb.com/try/download/shell</a> </p>
+</blockquote>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget https://downloads.mongodb.com/compass/mongodb-mongosh-1.8.0.x86_64.rpm</span><br><span class="line">yum install -y mongodb-mongosh-1.8.0.x86_64.rpm</span><br></pre></td></tr></tbody></table></figure>
+
+<p>连接mongodb server端</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mongosh --host 192.168.31.246 --port=27017</span><br><span class="line">mongosh 192.168.31.246:27017</span><br><span class="line">mongosh mongodb://192.168.31.246:27017/test</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>–port:指定端口，默认为27017</p>
+<p>–host:连接的主机地址，默认127.0.0.1 </p>
+</blockquote>
+<h2 id="mongosh常用命令"><a href="#mongosh常用命令" class="headerlink" title="mongosh常用命令"></a>mongosh常用命令</h2><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>show dbs | show databases</td>
+<td>显示数据库列表</td>
+</tr>
+<tr>
+<td>use 数据库名</td>
+<td>切换数据库，如果不存在则创建数据库</td>
+</tr>
+<tr>
+<td>db.dropDatabase()</td>
+<td>删除数据库</td>
+</tr>
+<tr>
+<td>show collections | show tables</td>
+<td>显示当前数据库集合列表</td>
+</tr>
+<tr>
+<td>db.集合名.stats()</td>
+<td>查看集合详情</td>
+</tr>
+<tr>
+<td>db.集合名.drop()</td>
+<td>删除集合</td>
+</tr>
+<tr>
+<td>show users</td>
+<td>显示当前数据库的用户列表</td>
+</tr>
+<tr>
+<td>show roles</td>
+<td>显示当前数据库的角色列表</td>
+</tr>
+<tr>
+<td>show profile</td>
+<td>显示最近发生的操作</td>
+</tr>
+<tr>
+<td>load(“xxx.js”)</td>
+<td>执行一个JavaScript脚本文件</td>
+</tr>
+<tr>
+<td>exit | quit</td>
+<td>退出当前shell</td>
+</tr>
+<tr>
+<td>help</td>
+<td>查看mongodb支持哪些命令</td>
+</tr>
+<tr>
+<td>db.help()</td>
+<td>查询当前数据库支持的方法</td>
+</tr>
+<tr>
+<td>db.集合名.help()</td>
+<td>显示集合的帮助信息</td>
+</tr>
+</tbody></table>
+<h3 id="数据库操作"><a href="#数据库操作" class="headerlink" title="数据库操作"></a>数据库操作</h3><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看所有库</span></span><br><span class="line">show dbs</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">切换到指定数据库，不存在则创建</span></span><br><span class="line">use test</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">删除当前数据库</span></span><br><span class="line">db.dropDatabase()</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="集合操作"><a href="#集合操作" class="headerlink" title="集合操作"></a>集合操作</h3><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看集合</span></span><br><span class="line">show collections</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建集合</span></span><br><span class="line">db.createCollection("emp")</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">删除集合</span></span><br><span class="line">db.emp.drop()</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h3 id="创建集合语法"><a href="#创建集合语法" class="headerlink" title="创建集合语法"></a>创建集合语法</h3><p>语法格式：db.createCollection(name, options) </p>
+<ul>
+<li>name：集合名称</li>
+<li>options：可选参数 , 指定有关内存大小及索引的选项</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>capped</td>
+<td>布尔</td>
+<td>（可选）如果为 true，则创建固定集合。固定集合是指有着固定大小的集合，当达到最大值时，它会自动覆盖最早的文档(<font style="color:red">环形数组</font>)。<strong>当该值为 true 时，必须指定 size 参数。</strong></td>
+</tr>
+<tr>
+<td>size</td>
+<td>数值</td>
+<td>（可选）为固定集合指定一个最大值，即字节数。<strong>如果 capped 为 true，也需要指定该字段。</strong></td>
+</tr>
+<tr>
+<td>max</td>
+<td>数值</td>
+<td>（可选）指定固定集合中包含文档的最大数量。</td>
+</tr>
+</tbody></table>
+<p>注意： 当集合不存在时，向集合中插入文档也会创建集合 </p>
+<p><strong>示例</strong></p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.createCollection("radish", {capped:true, autoIndexId:true, size:6142800, max:10000} )</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h1 id="3、安全认证"><a href="#3、安全认证" class="headerlink" title="3、安全认证"></a>3、安全认证</h1><p>使用用户名和密码来认证用户身份是 MongoDB 中最常用的安全认证方式。可以通过以下步骤实现：</p>
+<ul>
+<li>创建一个管理员用户（root）并设置密码，具有所有数据库的管理权限。</li>
+<li>创建一个或多个普通用户，指定相应的数据库和集合权限，并设置密码。</li>
+</ul>
+<p>启用认证后，客户端连接 MongoDB 服务器时需要提供用户名和密码才能成功连接。 </p>
+<h2 id="创建管理员用户"><a href="#创建管理员用户" class="headerlink" title="创建管理员用户"></a>创建管理员用户</h2><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置管理员用户名密码需要切换到admin库</span></span><br><span class="line">use admin</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建管理员</span></span><br><span class="line">db.createUser({user:"radish", pwd:"radish", roles:["root"]})</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看当前数据库所有用户信息</span></span><br><span class="line">show users</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">显示可设置权限</span></span><br><span class="line">show roles</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">显示所有用户</span></span><br><span class="line">db.system.users.find()</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="常用权限"><a href="#常用权限" class="headerlink" title="常用权限"></a>常用权限</h2><table>
+<thead>
+<tr>
+<th>权限名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>read</td>
+<td>允许用户读取指定数据库</td>
+</tr>
+<tr>
+<td>readWrite</td>
+<td>允许用户读写指定数据库</td>
+</tr>
+<tr>
+<td>dbAdmin</td>
+<td>允许用户在指定数据库中执行管理函数，如索引创建、删除，查看统计或访问system.profile</td>
+</tr>
+<tr>
+<td>dbOwner</td>
+<td>允许用户在指定数据库中执行任意操作，增、删、改、查等</td>
+</tr>
+<tr>
+<td>userAdmin</td>
+<td>允许用户向system.users集合写入，可以在指定数据库里创建、删除和管理用户</td>
+</tr>
+<tr>
+<td>clusterAdmin</td>
+<td>只在admin数据库中可用，赋予用户所有分片和复制集相关函数的管理权限</td>
+</tr>
+<tr>
+<td>readAnyDatabase</td>
+<td>只在admin数据库中可用，赋予用户所有数据库的读权限</td>
+</tr>
+<tr>
+<td>readWriteAnyDatabase</td>
+<td>只在admin数据库中可用，赋予用户所有数据库的读写权限</td>
+</tr>
+<tr>
+<td>userAdminAnyDatabase</td>
+<td>只在admin数据库中可用，赋予用户所有数据库的userAdmin权限</td>
+</tr>
+<tr>
+<td>dbAdminAnyDatabase</td>
+<td>只在admin数据库中可用，赋予用户所有数据库的dbAdmin权限</td>
+</tr>
+<tr>
+<td>root</td>
+<td>只在admin数据库中可用。超级账号，超级权限</td>
+</tr>
+</tbody></table>
+<p>重新赋予用户操作权限 </p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.grantRolesToUser("radish",[{role:"clusterAdmin", db:"admin"},{role:"userAdminAnyDatabase", db:"admin"},{role:"readWriteAnyDatabase", db:"admin"}])</span><br></pre></td></tr></tbody></table></figure>
+
+<p>删除用户</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.dropUser("radish")</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">删除当前数据库所有用户</span></span><br><span class="line">db.dropAllUser()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>用户认证，返回1表示认证成功</p>
+<h2 id="创建应用数据库用户"><a href="#创建应用数据库用户" class="headerlink" title="创建应用数据库用户"></a>创建应用数据库用户</h2><figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">use appdb</span><br><span class="line">db.createUser({user:"appdb", pwd:"appdb", roles:["dbOwner"]})</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h1 id="4、启用鉴权"><a href="#4、启用鉴权" class="headerlink" title="4、启用鉴权"></a>4、启用鉴权</h1><p>默认情况下，MongoDB不会启用鉴权，以鉴权模式启动MongoDB</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongod -f /mongodb/conf/mongo.conf --auth</span><br></pre></td></tr></tbody></table></figure>
+
+<p>启用鉴权之后，连接MongoDB的相关操作都需要提供身份认证。</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongosh --host 192.168.31.246 --port=27017 -u appdb -p appdb -authenticationDatabase=appdb</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h1 id="5、Docker安装MongoDB"><a href="#5、Docker安装MongoDB" class="headerlink" title="5、Docker安装MongoDB"></a>5、Docker安装MongoDB</h1><p><a target="_blank" rel="noopener" href="https://hub.docker.com/_/mongo?tab=description&amp;page=3">https://hub.docker.com/_/mongo?tab=description&amp;page=3</a></p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">拉取mongo镜像</span></span><br><span class="line">docker pull mongo:6.0.6</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行mongo镜像</span></span><br><span class="line">docker run --name mongo-server -p 29017:27017</span><br><span class="line">-e MONGO_INITDB_ROOT_USERNAME=radish</span><br><span class="line">-e MONGO_INITDB_ROOT_PASSWORD=radish</span><br><span class="line">-d mongo:6.0.6 --wiredTigerCacheSizeGB 1</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>默认情况下，Mongo会将wiredTigerCacheSizeGB设置为与主机总内存成比例的值，而不考虑你可能对容器施加的内存限制。</p>
+<p>MONGO_INITDB_ROOT_USERNAME和MONGO_INITDB_ROOT_PASSWORD都存在就会启用身份认证（mongod –auth）</p>
+</blockquote>
+<p>利用mongosh建立连接 </p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongosh ip:29017 -u radish -p radish</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h1 id="6、MongoDB常用工具"><a href="#6、MongoDB常用工具" class="headerlink" title="6、MongoDB常用工具"></a>6、MongoDB常用工具</h1><p><strong>官方GUI：COMPASS</strong></p>
+<p>MongoDB图形化管理工具(GUI)，能够帮助您在不需要知道MongoDB查询语法的前提下，便利地分析和理解您的数据库模式,并且帮助您可视化地构建查询。</p>
+<p>下载地址：<a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/products/compass">https://www.mongodb.com/zh-cn/products/compass</a></p>
+<p><strong>Robo 3T（免费）</strong> </p>
+<p>下载地址：<a target="_blank" rel="noopener" href="https://robomongo.org/">https://robomongo.org/</a></p>
+<p><strong>Studio 3T（收费，试用30天）</strong></p>
+<p>下载地址：<a target="_blank" rel="noopener" href="https://studio3t.com/download/">https://studio3t.com/download/</a></p>
+<p><strong>MongoDB Database Tools</strong> </p>
+<p>下载地址：<a target="_blank" rel="noopener" href="https://www.mongodb.com/try/download/database-tools">https://www.mongodb.com/try/download/database-tools</a></p>
+<table>
+<thead>
+<tr>
+<th>文件名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mongostat</td>
+<td>数据库性能监控工具</td>
+</tr>
+<tr>
+<td>mongotop</td>
+<td>热点表监控工具</td>
+</tr>
+<tr>
+<td>mongodump</td>
+<td>数据库逻辑备份工具</td>
+</tr>
+<tr>
+<td>mongorestore</td>
+<td>数据库逻辑恢复工具</td>
+</tr>
+<tr>
+<td>mongoexport</td>
+<td>数据导出工具</td>
+</tr>
+<tr>
+<td>mongoimport</td>
+<td>数据导入工具</td>
+</tr>
+<tr>
+<td>bsondump</td>
+<td>BSON格式转换工具</td>
+</tr>
+<tr>
+<td>mongofiles</td>
+<td>GridFS文件工具</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">http://example.com/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MongoDB/">MongoDB</a></div><div class="post_share"><div class="social-share" data-image="/../img/mongodb.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/06/16/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%80)%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D/" title="MongoDB基础入门(一)——基本介绍"><img class="cover" src="/../img/mongodb.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MongoDB基础入门(一)——基本介绍</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/06/16/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%80)%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D/" title="MongoDB基础入门(一)——基本介绍"><img class="cover" src="/../img/mongodb.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-16</div><div class="title">MongoDB基础入门(一)——基本介绍</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1%E3%80%81Linux%E5%AE%89%E8%A3%85MongoDB"><span class="toc-number">1.</span> <span class="toc-text">1、Linux安装MongoDB</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="toc-number">1.1.</span> <span class="toc-text">环境准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8MongoDB-Server"><span class="toc-number">1.2.</span> <span class="toc-text">启动MongoDB Server</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.3.</span> <span class="toc-text">添加环境变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.4.</span> <span class="toc-text">利用配置文件启动服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%97%ADMongoDB%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.5.</span> <span class="toc-text">关闭MongoDB服务</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2%E3%80%81mongosh%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">2、mongosh的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#mongosh%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-number">2.1.</span> <span class="toc-text">mongosh常用命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E6%93%8D%E4%BD%9C"><span class="toc-number">2.1.1.</span> <span class="toc-text">数据库操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9B%86%E5%90%88%E6%93%8D%E4%BD%9C"><span class="toc-number">2.1.2.</span> <span class="toc-text">集合操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E9%9B%86%E5%90%88%E8%AF%AD%E6%B3%95"><span class="toc-number">2.1.3.</span> <span class="toc-text">创建集合语法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3%E3%80%81%E5%AE%89%E5%85%A8%E8%AE%A4%E8%AF%81"><span class="toc-number">3.</span> <span class="toc-text">3、安全认证</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%AE%A1%E7%90%86%E5%91%98%E7%94%A8%E6%88%B7"><span class="toc-number">3.1.</span> <span class="toc-text">创建管理员用户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E6%9D%83%E9%99%90"><span class="toc-number">3.2.</span> <span class="toc-text">常用权限</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%BA%94%E7%94%A8%E6%95%B0%E6%8D%AE%E5%BA%93%E7%94%A8%E6%88%B7"><span class="toc-number">3.3.</span> <span class="toc-text">创建应用数据库用户</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4%E3%80%81%E5%90%AF%E7%94%A8%E9%89%B4%E6%9D%83"><span class="toc-number">4.</span> <span class="toc-text">4、启用鉴权</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5%E3%80%81Docker%E5%AE%89%E8%A3%85MongoDB"><span class="toc-number">5.</span> <span class="toc-text">5、Docker安装MongoDB</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6%E3%80%81MongoDB%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7"><span class="toc-number">6.</span> <span class="toc-text">6、MongoDB常用工具</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="MongoDB基础入门(二)——环境搭建"><img src="/../img/mongodb.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MongoDB基础入门(二)——环境搭建"></a><div class="content"><a class="title" href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="MongoDB基础入门(二)——环境搭建">MongoDB基础入门(二)——环境搭建</a><time datetime="2023-06-16T16:35:00.000Z" title="发表于 2023-06-17 00:35:00">2023-06-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/16/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%80)%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D/" title="MongoDB基础入门(一)——基本介绍"><img src="/../img/mongodb.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MongoDB基础入门(一)——基本介绍"></a><div class="content"><a class="title" href="/2023/06/16/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%80)%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D/" title="MongoDB基础入门(一)——基本介绍">MongoDB基础入门(一)——基本介绍</a><time datetime="2023-06-15T16:39:00.000Z" title="发表于 2023-06-16 00:39:00">2023-06-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/12/Redis%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3/" title="Redis高可用集群架构详解"><img src="/../img/gaokeyongjiqun.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Redis高可用集群架构详解"></a><div class="content"><a class="title" href="/2023/06/12/Redis%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3/" title="Redis高可用集群架构详解">Redis高可用集群架构详解</a><time datetime="2023-06-12T14:53:00.000Z" title="发表于 2023-06-12 22:53:00">2023-06-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/03/Redis%E4%B8%BB%E4%BB%8E%E6%9E%B6%E6%9E%84%E5%92%8C%E5%93%A8%E5%85%B5%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3/" title="Redis主从架构和哨兵架构详解"><img src="/../img/redis.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Redis主从架构和哨兵架构详解"></a><div class="content"><a class="title" href="/2023/06/03/Redis%E4%B8%BB%E4%BB%8E%E6%9E%B6%E6%9E%84%E5%92%8C%E5%93%A8%E5%85%B5%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3/" title="Redis主从架构和哨兵架构详解">Redis主从架构和哨兵架构详解</a><time datetime="2023-06-03T11:48:00.000Z" title="发表于 2023-06-03 19:48:00">2023-06-03</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/01/Redis5.0.14%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B/" title="Redis5.0.14安装教程"><img src="/../img/redis.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Redis5.0.14安装教程"></a><div class="content"><a class="title" href="/2023/06/01/Redis5.0.14%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B/" title="Redis5.0.14安装教程">Redis5.0.14安装教程</a><time datetime="2023-05-31T16:00:00.000Z" title="发表于 2023-06-01 00:00:00">2023-06-01</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
