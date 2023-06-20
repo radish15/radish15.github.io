@@ -1,0 +1,483 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>MongoDB基础入门(四)——数据类型 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1、BSON协议与数据类型BSON由10gen团队设计并开源，目前主要用于MongoDB数据库。BSON（Binary JSON）是二进制版本的JSON，其在性能方面有更优的表现。BSON在许多方面和JSON保持一致，其同样也支持内嵌的文档对象和数组结构。二者最大的区别在于JSON是基于文本的，而BSON则是二进制（字节流）编/解码的形式。在空间的使用上，BSON相比JSON并没有明显的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MongoDB基础入门(四)——数据类型">
+<meta property="og:url" content="http://example.com/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E5%9B%9B)%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="1、BSON协议与数据类型BSON由10gen团队设计并开源，目前主要用于MongoDB数据库。BSON（Binary JSON）是二进制版本的JSON，其在性能方面有更优的表现。BSON在许多方面和JSON保持一致，其同样也支持内嵌的文档对象和数组结构。二者最大的区别在于JSON是基于文本的，而BSON则是二进制（字节流）编/解码的形式。在空间的使用上，BSON相比JSON并没有明显的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/mongodb.png">
+<meta property="article:published_time" content="2023-06-17T15:08:00.000Z">
+<meta property="article:modified_time" content="2023-06-20T17:10:45.906Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="MongoDB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/mongodb.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E5%9B%9B)%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MongoDB基础入门(四)——数据类型',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-06-21 01:10:45'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">MongoDB基础入门(四)——数据类型</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-17T15:08:00.000Z" title="发表于 2023-06-17 23:08:00">2023-06-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-06-20T17:10:45.906Z" title="更新于 2023-06-21 01:10:45">2023-06-21</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MongoDB基础入门(四)——数据类型"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h1 id="1、BSON协议与数据类型"><a href="#1、BSON协议与数据类型" class="headerlink" title="1、BSON协议与数据类型"></a>1、BSON协议与数据类型</h1><p>BSON由10gen团队设计并开源，目前主要用于MongoDB数据库。BSON（Binary JSON）是二进制版本的JSON，其在性能方面有更优的表现。BSON在许多方面和JSON保持一致，其同样也支持内嵌的文档对象和数组结构。<font style="color:red">二者最大的区别在于JSON是基于文本的，而BSON则是二进制（字节流）编/解码的形式。</font>在空间的使用上，BSON相比JSON并没有明显的优势。</p>
+<p><font style="color:red">MongoDB在文档存储、命令协议上都采用了BSON作为编/解码格式</font>，主要具有如下优势：</p>
+<ul>
+<li>类JSON的轻量级语义，支持简单清晰的嵌套、数组层次结构，<font style="color:red">可以实现模式灵活的文档结构。 </font></li>
+<li><font style="color:red">更高效的遍历</font>，BSON在编码时会记录每个元素的长度，可以直接通过seek操作进行元素的内容读取，相对JSON解析来说，遍历速度更快。</li>
+<li><font style="color:red">更丰富的数据类型</font>，除了JSON的基本数据类型，BSON还提供了MongoDB所需的一些扩展类型，比如日期、二进制数据等，这更加方便数据的表示和操作。</li>
+</ul>
+<h2 id="BSON的数据类型"><a href="#BSON的数据类型" class="headerlink" title="BSON的数据类型"></a>BSON的数据类型</h2><p>MongoDB中，一个BSON文档最大大小为16M，文档嵌套的级别不超过100</p>
+<p><a target="_blank" rel="noopener" href="https://www.mongodb.com/docs/v6.0/reference/bson-types/">https://www.mongodb.com/docs/v6.0/reference/bson-types/</a></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Number</th>
+<th>Alias</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Double</td>
+<td>1</td>
+<td>“double”</td>
+<td></td>
+</tr>
+<tr>
+<td>String</td>
+<td>2</td>
+<td>“string”</td>
+<td></td>
+</tr>
+<tr>
+<td>Object</td>
+<td>3</td>
+<td>“object”</td>
+<td></td>
+</tr>
+<tr>
+<td>Array</td>
+<td>4</td>
+<td>“array”</td>
+<td></td>
+</tr>
+<tr>
+<td>Binary data</td>
+<td>5</td>
+<td>“binData”</td>
+<td></td>
+</tr>
+<tr>
+<td>Undefined</td>
+<td>6</td>
+<td>“undefined”</td>
+<td>Deprecated.</td>
+</tr>
+<tr>
+<td>ObjectId</td>
+<td>7</td>
+<td>“objectId”</td>
+<td></td>
+</tr>
+<tr>
+<td>Boolean</td>
+<td>8</td>
+<td>“bool”</td>
+<td></td>
+</tr>
+<tr>
+<td>Date</td>
+<td>9</td>
+<td>“date”</td>
+<td></td>
+</tr>
+<tr>
+<td>Null</td>
+<td>10</td>
+<td>“null”</td>
+<td></td>
+</tr>
+<tr>
+<td>Regular Expression</td>
+<td>11</td>
+<td>“regex”</td>
+<td></td>
+</tr>
+<tr>
+<td>DBPointer</td>
+<td>12</td>
+<td>“dbPointer”</td>
+<td>Deprecated.</td>
+</tr>
+<tr>
+<td>JavaScript</td>
+<td>13</td>
+<td>“javascript”</td>
+<td></td>
+</tr>
+<tr>
+<td>Symbol</td>
+<td>14</td>
+<td>“symbol”</td>
+<td>Deprecated.</td>
+</tr>
+<tr>
+<td>JavaScript code with scope</td>
+<td>15</td>
+<td>“javascriptWithScope”</td>
+<td>Deprecated in MongoDB 4.4.</td>
+</tr>
+<tr>
+<td>32-bit integer</td>
+<td>16</td>
+<td>“int”</td>
+<td></td>
+</tr>
+<tr>
+<td>Timestamp</td>
+<td>17</td>
+<td>“timestamp”</td>
+<td></td>
+</tr>
+<tr>
+<td>64-bit integer</td>
+<td>18</td>
+<td>“long”</td>
+<td></td>
+</tr>
+<tr>
+<td>Decimal128</td>
+<td>19</td>
+<td>“decimal”</td>
+<td></td>
+</tr>
+<tr>
+<td>Min key</td>
+<td>-1</td>
+<td>“minKey”</td>
+<td></td>
+</tr>
+<tr>
+<td>Max key</td>
+<td>127</td>
+<td>“maxKey”</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>$type操作符</strong></p>
+<p>$type操作符基于BSON类型来检索集合中匹配的数据类型，并返回结果。 </p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">books</span>.<span class="title function_">find</span>({<span class="string">"title"</span> : {$type : <span class="number">2</span>}})</span><br><span class="line"><span class="comment">// 同等于</span></span><br><span class="line">db.<span class="property">books</span>.<span class="title function_">find</span>({<span class="string">"title"</span> : {$type : <span class="string">"string"</span>}})</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+
+
+<h1 id="2、日期类型"><a href="#2、日期类型" class="headerlink" title="2、日期类型"></a>2、日期类型</h1><p>MongoDB的日期类型使用UTC（Coordinated Universal Time）进行存储，也就是<font style="color:red">+0时区的时间</font>。</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">dates</span>.<span class="title function_">insertMany</span>([{<span class="attr">data1</span>:<span class="title class_">Date</span>()},{<span class="attr">data2</span>:<span class="keyword">new</span> <span class="title class_">Date</span>()},{<span class="attr">data3</span>:<span class="title class_">ISODate</span>()}])</span><br><span class="line">db.<span class="property">dates</span>.<span class="title function_">find</span>().<span class="title function_">pretty</span>()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>使用new Date与ISODate最终都会生成ISODate类型的字段（对应于UTC时间）</p>
+<p><img src="/../img/1687279120683.png" alt="1687279120683"></p>
+<h1 id="3、ObjectId生成器"><a href="#3、ObjectId生成器" class="headerlink" title="3、ObjectId生成器"></a>3、ObjectId生成器</h1><p>MongoDB集合中所有的文档都有一个唯一的_id字段，作为集合的主键。在默认情况下，_id字段使用ObjectId类型，采用16进制编码形式，共12个字节。</p>
+<p>为了避免文档的_id字段出现重复，ObjectId被定义为3个部分：</p>
+<ul>
+<li>4字节表示Unix时间戳（秒）。</li>
+<li>5字节表示随机数（机器号+进程号唯一）。</li>
+<li>3字节表示计数器（初始化时随机）。</li>
+</ul>
+<p>大多数客户端驱动都会自行生成这个字段，比如MongoDB Java Driver会根据插入的文档是否包含_id字段来自动补充ObjectId对象。这样做不但提高了离散性，还可以降低MongoDB服务器端的计算压力。在ObjectId的组成中，5字节的随机数并没有明确定义，客户端可以采用机器号、进程号来实现：</p>
+<table>
+<thead>
+<tr>
+<th>属性/方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>str</td>
+<td>返回对象的十六进制字符串表示。</td>
+</tr>
+<tr>
+<td>ObjectId.getTimestamp()</td>
+<td>将对象的时间戳部分作为日期返回。</td>
+</tr>
+<tr>
+<td>ObjectId.toString()</td>
+<td>以字符串文字“”的形式返回 JavaScript 表示ObjectId(…)。</td>
+</tr>
+<tr>
+<td>ObjectId.valueOf()</td>
+<td>将对象的表示形式返回为十六进制字符串。返回的字符串是str属性。</td>
+</tr>
+</tbody></table>
+<p>生成一个新的 ObjectId </p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x = <span class="title class_">ObjectId</span>()</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h1 id="4、内嵌文档和数组"><a href="#4、内嵌文档和数组" class="headerlink" title="4、内嵌文档和数组"></a>4、内嵌文档和数组</h1><p><strong>内嵌文档</strong></p>
+<p>一个文档中可以包含作者的信息，包括作者名称、性别、家乡所在地，一个显著的优点是，当我们查询book文档的信息时，作者的信息也会一并返回。 </p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">books</span>.<span class="title function_">insert</span>({</span><br><span class="line">    <span class="attr">title</span>: <span class="string">"撒哈拉的故事"</span>,</span><br><span class="line">    <span class="attr">author</span>: {</span><br><span class="line">        <span class="attr">name</span>: <span class="string">"三毛"</span>,</span><br><span class="line">        <span class="attr">gender</span>: <span class="string">"女"</span>,</span><br><span class="line">        <span class="attr">hometown</span>: <span class="string">"重庆"</span></span><br><span class="line">    }</span><br><span class="line">})</span><br></pre></td></tr></tbody></table></figure>
+
+<p>查询三毛的作品</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">books</span>.<span class="title function_">find</span>({<span class="string">"author.name"</span>:<span class="string">"三毛"</span>})</span><br></pre></td></tr></tbody></table></figure>
+
+<p>修改三毛的家乡所在地</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">books</span>.<span class="title function_">updateOne</span>({<span class="string">"author.name"</span>:<span class="string">"三毛"</span>},{<span class="attr">$set</span>:{<span class="string">"author.hometown"</span>:<span class="string">"重庆/台湾"</span>}})</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<p><strong>数组</strong></p>
+<p>除了作者信息，文档中还包含了若干个标签，这些标签可以用来表示文档所包含的一些特征，如豆瓣读书中的标签（tag） </p>
+<p>增加tags标签</p>
+ <figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">books</span>.<span class="title function_">updateOne</span>({<span class="string">"author.name"</span>:<span class="string">"三毛"</span>},{<span class="attr">$set</span>:{<span class="attr">tags</span>:[<span class="string">"旅行"</span>,<span class="string">"随笔"</span>,<span class="string">"散文"</span>,<span class="string">"爱情"</span>,<span class="string">"文学"</span>]}}) </span><br></pre></td></tr></tbody></table></figure>
+
+<p>查询数组元素</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 会查询到所有的tags</span><br><span class="line">db.<span class="property">books</span>.<span class="title function_">find</span>({<span class="string">"author.name"</span>:<span class="string">"三毛"</span>},{<span class="attr">title</span>:<span class="number">1</span>,<span class="attr">tags</span>:<span class="number">1</span>})</span><br><span class="line"># 利用$slice获取最后一个tag</span><br><span class="line">db.<span class="property">books</span>.<span class="title function_">find</span>({<span class="string">"author.name"</span>:<span class="string">"三毛"</span>},{<span class="attr">title</span>:<span class="number">1</span>,<span class="attr">tags</span>:{<span class="attr">$slice</span>:-<span class="number">1</span>}})</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>$silice是一个查询操作符，用于指定数组的切片方式</p>
+</blockquote>
+<p>数组末尾追加元素，可以使用$push操作符</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">books</span>.<span class="title function_">updateOne</span>({<span class="string">"author.name"</span>:<span class="string">"三毛"</span>},{<span class="attr">$push</span>:{<span class="attr">tags</span>:<span class="string">"猎奇"</span>}})</span><br></pre></td></tr></tbody></table></figure>
+
+<p>$push操作符可以配合其他操作符，一起实现不同的数组修改操作，比如和$each操作符配合可以用于添加多个元素</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">books</span>.<span class="title function_">updateOne</span>({<span class="string">"author.name"</span>:<span class="string">"三毛"</span>},{<span class="attr">$push</span>:{<span class="attr">tags</span>:{<span class="attr">$each</span>:[<span class="string">"伤感"</span>,<span class="string">"想象力"</span>]}}})</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果加上$slice操作符，那么只会保留经过切片后的元素</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">books</span>.<span class="title function_">updateOne</span>({<span class="string">"author.name"</span>:<span class="string">"三毛"</span>},{<span class="attr">$push</span>:{<span class="attr">tags</span>:{<span class="attr">$each</span>:[<span class="string">"伤感"</span>,<span class="string">"想象"</span>],<span class="attr">$slice</span>:-<span class="number">3</span>}}})</span><br></pre></td></tr></tbody></table></figure>
+
+<p>根据元素查询</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 会查出所有包含伤感的文档</span><br><span class="line">db.<span class="property">books</span>.<span class="title function_">find</span>({<span class="attr">tags</span>:<span class="string">"伤感"</span>})</span><br><span class="line"># 会查出所有同时包含<span class="string">"伤感"</span>,<span class="string">"想象力"</span>的文档</span><br><span class="line">db.<span class="property">books</span>.<span class="title function_">find</span>({<span class="attr">tags</span>:{<span class="attr">$all</span>:[<span class="string">"伤感"</span>,<span class="string">"想象力"</span>]}})</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<p><strong>嵌套型的数组</strong></p>
+<p>数组元素可以是基本类型，也可以是内嵌的文档结构 </p>
+<figure class="highlight json"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">{</span></span><br><span class="line">    tags<span class="punctuation">:</span><span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">{</span>tagKey<span class="punctuation">:</span>xxx<span class="punctuation">,</span>tagValue<span class="punctuation">:</span>xxxx<span class="punctuation">}</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">{</span>tagKey<span class="punctuation">:</span>xxx<span class="punctuation">,</span>tagValue<span class="punctuation">:</span>xxxx<span class="punctuation">}</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">}</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>这种结构非常灵活，一个很适合的场景就是商品的多属性表示 </p>
+<p>一个商品可以同时包含多个维度的属性，比如尺码、颜色、风格等，使用文档可以表示为：</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">goods</span>.<span class="title function_">insertMany</span>([{</span><br><span class="line">    <span class="attr">name</span>:<span class="string">"羽绒服"</span>,</span><br><span class="line">    <span class="attr">tags</span>:[</span><br><span class="line">        {<span class="attr">tagKey</span>:<span class="string">"size"</span>,<span class="attr">tagValue</span>:[<span class="string">"M"</span>,<span class="string">"L"</span>,<span class="string">"XL"</span>,<span class="string">"XXL"</span>,<span class="string">"XXXL"</span>]},</span><br><span class="line">        {<span class="attr">tagKey</span>:<span class="string">"color"</span>,<span class="attr">tagValue</span>:[<span class="string">"黑色"</span>,<span class="string">"宝蓝"</span>]},</span><br><span class="line">        {<span class="attr">tagKey</span>:<span class="string">"style"</span>,<span class="attr">tagValue</span>:<span class="string">"韩风"</span>}</span><br><span class="line">    ]</span><br><span class="line">},{</span><br><span class="line">    <span class="attr">name</span>:<span class="string">"羊毛衫"</span>,</span><br><span class="line">    <span class="attr">tags</span>:[</span><br><span class="line">        {<span class="attr">tagKey</span>:<span class="string">"size"</span>,<span class="attr">tagValue</span>:[<span class="string">"L"</span>,<span class="string">"XL"</span>,<span class="string">"XXL"</span>]},</span><br><span class="line">        {<span class="attr">tagKey</span>:<span class="string">"color"</span>,<span class="attr">tagValue</span>:[<span class="string">"蓝色"</span>,<span class="string">"杏色"</span>]},</span><br><span class="line">        {<span class="attr">tagKey</span>:<span class="string">"style"</span>,<span class="attr">tagValue</span>:<span class="string">"韩风"</span>}</span><br><span class="line">    ]</span><br><span class="line">}])</span><br></pre></td></tr></tbody></table></figure>
+
+<p>以上的设计是一种常见的多值属性的做法，当我们需要根据属性进行检索时，需要用到$elementMatch操作符：</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 筛选出color=黑色的商品信息</span><br><span class="line">db.<span class="property">goods</span>.<span class="title function_">find</span>(</span><br><span class="line">	{</span><br><span class="line">        <span class="attr">tags</span>:{</span><br><span class="line">            <span class="attr">$elemMatch</span>:{<span class="attr">tagKey</span>:<span class="string">"color"</span>,<span class="attr">tagValue</span>:<span class="string">"黑色"</span>}</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果进行组合式的条件检索，则可以使用多个$elemMatch操作符：</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 筛选出color=蓝色，并且size=<span class="variable constant_">SL</span>的商品信息</span><br><span class="line">db.<span class="property">goods</span>.<span class="title function_">find</span>(</span><br><span class="line">	{</span><br><span class="line">        <span class="attr">tags</span>:{</span><br><span class="line">            <span class="attr">$all</span>:[</span><br><span class="line">                {<span class="attr">$elemMatch</span>:{<span class="attr">tagKey</span>:<span class="string">"color"</span>,<span class="attr">tagValue</span>:<span class="string">"黑色"</span>}},</span><br><span class="line">                {<span class="attr">$elemMatch</span>:{<span class="attr">tagKey</span>:<span class="string">"size"</span>,<span class="attr">tagValue</span>:<span class="string">"XL"</span>}}</span><br><span class="line">            ]</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h1 id="5、固定（封顶）集合"><a href="#5、固定（封顶）集合" class="headerlink" title="5、固定（封顶）集合"></a>5、固定（封顶）集合</h1><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/docs/manual/core/capped-collections/">https://www.mongodb.com/docs/manual/core/capped-collections/</a> </p>
+<p>固定集合（capped collection）是一种限定大小的集合，其中capped是覆盖、限额的意思。跟普通的集合相比，数据在写入这种集合时遵循FIFO原则。可以将这种集合想象为一个环状的队列，新文档在写入时会被插入队列的末尾，如果队列已满，那么之前的文档就会被新写入的文档所覆盖。通过固定集合的大小，我们可以保证数据库只会存储“限额”的数据，超过该限额的旧数据都会被丢弃。 </p>
+<p><img src="/../img/1687280369357.png" alt="1687280369357"></p>
+<p><strong>使用示例</strong> </p>
+<p>创建固定集合</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="title function_">createCollection</span>(<span class="string">"logs"</span>,{<span class="attr">capped</span>:<span class="literal">true</span>,<span class="attr">size</span>:<span class="number">4096</span>,<span class="attr">max</span>:<span class="number">10</span>})</span><br></pre></td></tr></tbody></table></figure>
+
+<ul>
+<li>max：指集合的文档数量最大值，这里是10条</li>
+<li>size：指集合的空间占用最大值，这里是4096字节（4KB）</li>
+</ul>
+<p>这两个参数会同时对集合的上限产生影响。也就是说，只要任一条件达到阈值都会认为集合已经写满。其中size是必选的，而max则是可选的。</p>
+<p>可以使用collection.stats命令查看文档的占用空间</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">logs</span>.<span class="title function_">stats</span>()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>将普通集合转换为固定集合</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="title function_">runCommand</span>({<span class="string">"convertToCapped"</span>: <span class="string">"mycoll"</span>, <span class="attr">size</span>: <span class="number">100000</span>})</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>测试</strong></p>
+<p>尝试在这个集合中插入15条数据，再查询会发现，由于文档数量上限被设定为10条，前面插入的5条数据已经被覆盖了</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; <span class="number">15</span>; i++) {</span><br><span class="line">    db.<span class="property">logs</span>.<span class="title function_">insert</span>({<span class="attr">t</span>:<span class="string">"row-"</span>+i})</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>适用场景</strong> </p>
+<p><font style="color:red">固定集合很适合用来存储一些“临时态”的数据</font>。“临时态”意味着数据在一定程度上可以被丢弃。同时，用户还应该更关注最新的数据，随着时间的推移，数据的重要性逐渐降低，直至被淘汰处理。</p>
+<p>一些适用的场景如下：</p>
+<ul>
+<li>系统日志，这非常符合固定集合的特征，而日志系统通常也只需要一个固定的空间来存放日志。在MongoDB内部，副本集的同步日志（oplog）就使用了固定集合。</li>
+<li>存储少量文档，<font style="color:red">如最新发布的TopN条文章信息</font>。得益于内部缓存的作用，对于这种少量文档的查询是非常高效的。</li>
+</ul>
+<p><strong>存储股票价格变动信息</strong></p>
+<p>在股票实时系统中，大家往往最关心股票价格的变动。而应用系统中也需要根据这些实时的变化数据来分析当前的行情。倘若将股票的价格变化看作是一个事件，而股票交易所则是价格变动事件的“发布者”，股票APP、应用系统则是事件的“消费者”。这样，我们就可以将股票价格的发布、通知抽象为一种数据的消费行为，此时往往需要一个消息队列来实现该需求。</p>
+<p>结合业务场景： <font style="color:red">利用固定集合实现存储股票价格变动信息的消息队列</font></p>
+<ol>
+<li>创建stock_queue消息队列，其可以容纳10MB的数据</li>
+</ol>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="title function_">createCollection</span>(<span class="string">"stock_queue"</span>,{<span class="attr">capped</span>:<span class="literal">true</span>,<span class="attr">size</span>:<span class="number">10485760</span>})</span><br></pre></td></tr></tbody></table></figure>
+
+<ol start="2">
+<li>定义消息格式</li>
+</ol>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">{</span><br><span class="line">    <span class="attr">timestamped</span>:<span class="keyword">new</span> <span class="title class_">Date</span>(),</span><br><span class="line">    <span class="attr">stock</span>: <span class="string">"MongoDB Inc"</span>,</span><br><span class="line">    <span class="attr">price</span>: <span class="number">20.33</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<ul>
+<li>timestamp指股票动态消息的产生时间。 </li>
+<li>stock指股票的名称。</li>
+<li>price指股票的价格，是一个Double类型的字段。</li>
+</ul>
+<p>为了能支持按时间条件进行快速的检索，比如查询某个时间点之后的数据，可以为timestamp添加索引</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.stock_queue.createIndex({timestamped:1})</span><br></pre></td></tr></tbody></table></figure>
+
+<ol start="3">
+<li>构建生产者，发布股票动态</li>
+</ol>
+<p>模拟股票的实时变动</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">pushEvent</span>(<span class="params"></span>){</span><br><span class="line">	<span class="keyword">while</span>(<span class="literal">true</span>){</span><br><span class="line">        db.<span class="property">stock_queue</span>.<span class="title function_">insert</span>({</span><br><span class="line">            <span class="attr">timestamped</span>:<span class="keyword">new</span> <span class="title class_">Date</span>(),</span><br><span class="line">            <span class="attr">stock</span>: <span class="string">"MongoDB Inc"</span>,</span><br><span class="line">            <span class="attr">price</span>: <span class="number">100</span>*<span class="title class_">Math</span>.<span class="title function_">random</span>(<span class="number">1000</span>)</span><br><span class="line">        });</span><br><span class="line">        <span class="title function_">print</span>(<span class="string">"publish stock changed"</span>);</span><br><span class="line">        <span class="title function_">sleep</span>(<span class="number">1000</span>);</span><br><span class="line">    }   </span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>执行pushEvent函数，此时客户端会每隔1秒向stock_queue中写入一条股票信息 </p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">pushEvent</span>()</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<ol start="4">
+<li>构建消费者，监听股票动态</li>
+</ol>
+<p>对于消费方来说，更关心的是最新数据，同时还应该保持持续进行“拉取”，以便知晓实时发生的变化。根据这样的逻辑，可以实现一个listen函数</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">listen</span>(<span class="params"></span>){</span><br><span class="line">    <span class="keyword">var</span> cursor = db.<span class="property">stock_queue</span>.<span class="title function_">find</span>({<span class="attr">timestamped</span>:{<span class="attr">$gte</span>:<span class="keyword">new</span> <span class="title class_">Date</span>()}}).<span class="title function_">tailable</span>();</span><br><span class="line">    <span class="keyword">while</span>(<span class="literal">true</span>){</span><br><span class="line">        <span class="keyword">if</span>(cursor.<span class="title function_">hasNext</span>()){</span><br><span class="line">            <span class="title function_">print</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(cursor.<span class="title function_">next</span>(),<span class="literal">null</span>,<span class="number">2</span>));</span><br><span class="line">        }</span><br><span class="line">        <span class="title function_">sleep</span>(<span class="number">1000</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>find操作的查询条件被指定为仅查询比当前时间更新的数据，而由于采用了读取游标的方式，因此游标在获取不到数据时并不会被关闭，这种行为非常类似于Linux中的tail-f命令。在一个循环中会定时检查 是否有新的数据产生，一旦发现新的数据（cursor.hasNext()=true），则直接将数据打印到控制台。 执行这个监听函数，就可以看到实时发布的股票信息</p>
+<figure class="highlight javascript"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">listen</span>()</span><br></pre></td></tr></tbody></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E5%9B%9B)%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">http://example.com/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E5%9B%9B)%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MongoDB/">MongoDB</a></div><div class="post_share"><div class="social-share" data-image="/../img/mongodb.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%89)%E2%80%94%E2%80%94%E6%96%87%E6%A1%A3%E6%93%8D%E4%BD%9C/" title="MongoDB基础入门(三)——文档操作"><img class="cover" src="/../img/mongodb.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MongoDB基础入门(三)——文档操作</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%89)%E2%80%94%E2%80%94%E6%96%87%E6%A1%A3%E6%93%8D%E4%BD%9C/" title="MongoDB基础入门(三)——文档操作"><img class="cover" src="/../img/mongodb.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-17</div><div class="title">MongoDB基础入门(三)——文档操作</div></div></a></div><div><a href="/2023/06/16/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%80)%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D/" title="MongoDB基础入门(一)——基本介绍"><img class="cover" src="/../img/mongodb.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-16</div><div class="title">MongoDB基础入门(一)——基本介绍</div></div></a></div><div><a href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="MongoDB基础入门(二)——环境搭建"><img class="cover" src="/../img/mongodb.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-17</div><div class="title">MongoDB基础入门(二)——环境搭建</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">愿内心深处的懦弱 不再将我吞噬</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1%E3%80%81BSON%E5%8D%8F%E8%AE%AE%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">1、BSON协议与数据类型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#BSON%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.1.</span> <span class="toc-text">BSON的数据类型</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2%E3%80%81%E6%97%A5%E6%9C%9F%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.</span> <span class="toc-text">2、日期类型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3%E3%80%81ObjectId%E7%94%9F%E6%88%90%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">3、ObjectId生成器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4%E3%80%81%E5%86%85%E5%B5%8C%E6%96%87%E6%A1%A3%E5%92%8C%E6%95%B0%E7%BB%84"><span class="toc-number">4.</span> <span class="toc-text">4、内嵌文档和数组</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5%E3%80%81%E5%9B%BA%E5%AE%9A%EF%BC%88%E5%B0%81%E9%A1%B6%EF%BC%89%E9%9B%86%E5%90%88"><span class="toc-number">5.</span> <span class="toc-text">5、固定（封顶）集合</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E5%9B%9B)%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" title="MongoDB基础入门(四)——数据类型"><img src="/../img/mongodb.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MongoDB基础入门(四)——数据类型"></a><div class="content"><a class="title" href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E5%9B%9B)%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" title="MongoDB基础入门(四)——数据类型">MongoDB基础入门(四)——数据类型</a><time datetime="2023-06-17T15:08:00.000Z" title="发表于 2023-06-17 23:08:00">2023-06-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%89)%E2%80%94%E2%80%94%E6%96%87%E6%A1%A3%E6%93%8D%E4%BD%9C/" title="MongoDB基础入门(三)——文档操作"><img src="/../img/mongodb.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MongoDB基础入门(三)——文档操作"></a><div class="content"><a class="title" href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%89)%E2%80%94%E2%80%94%E6%96%87%E6%A1%A3%E6%93%8D%E4%BD%9C/" title="MongoDB基础入门(三)——文档操作">MongoDB基础入门(三)——文档操作</a><time datetime="2023-06-17T12:08:00.000Z" title="发表于 2023-06-17 20:08:00">2023-06-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="MongoDB基础入门(二)——环境搭建"><img src="/../img/mongodb.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MongoDB基础入门(二)——环境搭建"></a><div class="content"><a class="title" href="/2023/06/17/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%8C)%E2%80%94%E2%80%94%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="MongoDB基础入门(二)——环境搭建">MongoDB基础入门(二)——环境搭建</a><time datetime="2023-06-16T16:35:00.000Z" title="发表于 2023-06-17 00:35:00">2023-06-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/16/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%80)%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D/" title="MongoDB基础入门(一)——基本介绍"><img src="/../img/mongodb.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MongoDB基础入门(一)——基本介绍"></a><div class="content"><a class="title" href="/2023/06/16/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%B8%80)%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D/" title="MongoDB基础入门(一)——基本介绍">MongoDB基础入门(一)——基本介绍</a><time datetime="2023-06-15T16:39:00.000Z" title="发表于 2023-06-16 00:39:00">2023-06-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/12/Redis%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3/" title="Redis高可用集群架构详解"><img src="/../img/gaokeyongjiqun.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Redis高可用集群架构详解"></a><div class="content"><a class="title" href="/2023/06/12/Redis%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3/" title="Redis高可用集群架构详解">Redis高可用集群架构详解</a><time datetime="2023-06-12T14:53:00.000Z" title="发表于 2023-06-12 22:53:00">2023-06-12</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
