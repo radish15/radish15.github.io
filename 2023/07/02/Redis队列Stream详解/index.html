@@ -1,0 +1,268 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Redis队列Stream详解 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Redis5.0 最大的新特性就是多出了一个数据结构 Stream，它是一个新的强大的支持多播的可持久化的消息队列，作者声明 Redis Stream 地借鉴了 Kafka 的设计。  1、Stream总述 Redis Stream 的结构如上图所示,每一个Stream都有一个消息链表，将所有加入的消息都串起来，每个消息都有一个唯一的 ID 和对应的内容。消息是持久化的，Redis 重启后，内容">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis队列Stream详解">
+<meta property="og:url" content="http://example.com/2023/07/02/Redis%E9%98%9F%E5%88%97Stream%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="Redis5.0 最大的新特性就是多出了一个数据结构 Stream，它是一个新的强大的支持多播的可持久化的消息队列，作者声明 Redis Stream 地借鉴了 Kafka 的设计。  1、Stream总述 Redis Stream 的结构如上图所示,每一个Stream都有一个消息链表，将所有加入的消息都串起来，每个消息都有一个唯一的 ID 和对应的内容。消息是持久化的，Redis 重启后，内容">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/redis.jpg">
+<meta property="article:published_time" content="2023-07-02T15:18:00.000Z">
+<meta property="article:modified_time" content="2023-07-10T16:51:29.699Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/redis.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/07/02/Redis%E9%98%9F%E5%88%97Stream%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Redis队列Stream详解',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-07-11 00:51:29'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Redis队列Stream详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-07-02T15:18:00.000Z" title="发表于 2023-07-02 23:18:00">2023-07-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-07-10T16:51:29.699Z" title="更新于 2023-07-11 00:51:29">2023-07-11</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Redis队列Stream详解"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><blockquote>
+<p>Redis5.0 最大的新特性就是多出了一个数据结构 Stream，它是一个新的强大的支持多播的可持久化的消息队列，作者声明 Redis Stream 地借鉴了 Kafka 的设计。</p>
+</blockquote>
+<h1 id="1、Stream总述"><a href="#1、Stream总述" class="headerlink" title="1、Stream总述"></a>1、Stream总述</h1><p><img src="/../img/redisstream.png" alt="redisstream"></p>
+<p>Redis Stream 的结构如上图所示,每一个Stream都有一个消息链表，将所有加入的消息都串起来，每个消息都有一个唯一的 ID 和对应的内容。消息是持久化的，Redis 重启后，内容还在。 </p>
+<p>每个 Stream 都有唯一的名称，它就是 Redis 的 key，在我们首次使用xadd指令追加消息时自动创建。 </p>
+<p>每个 Stream 都可以挂多个消费组，每个消费组会有个游标last_delivered_id在Stream 数组之上往前移动，表示当前消费组已经消费到哪条消息了。</p>
+<p>每个消费组都有一个 Stream 内唯一的名称，消费组不会自动创建，它需要单独的指令xgroup create进行创建，需要指定从 Stream 的某个消息 ID 开始消费，这个 ID 用来初始化last_delivered_id变量。 </p>
+<p>每个消费组 (Consumer Group) 的状态都是独立的，相互不受影响。也就是说同一份 Stream 内部的消息会被每个消费组都消费到。 </p>
+<p>同一个消费组 (Consumer Group) 可以挂接多个消费者 (Consumer)，这些消费者之间是竞争关系，任意一个消费者读取了消息都会使游标last_delivered_id往前移动。每个消费者有一个组内唯一名称。 </p>
+<p>消费者 (Consumer) 内部会有个状态变量 pending_ids，它记录了当前已经被客户端读取,但是还没有 ack 的消息。如果客户端没有 ack，这个变量里面的消息 ID 会越来越多，一旦某个消息被 ack，它就开始减少。这个 pending_ids 变量在 Redis 官方被称之为 PEL，也就是 Pending Entries List，这是一个很核心的数据结构，它用来确保客户端至少消费了消息一次，而不会在网络传输的中途丢失了没处理。 </p>
+<p>消息 ID 的形式是 timestampInMillis-sequence，例如 1527846880572-5，它表示当前的消息在毫米时间戳 1527846880572 时产生，并且是该毫秒内产生的第 5 条消息。消息 ID 可以由服务器自动生成，也可以由客户端自己指定，但是形式必须是整数-整数，而且必须是后面加入的消息的 ID 要大于前面的消息 ID。 </p>
+<p>消息内容就是键值对，形如 hash 结构的键值对，这没什么特别之处。</p>
+<h1 id="2、常用操作命令"><a href="#2、常用操作命令" class="headerlink" title="2、常用操作命令"></a>2、常用操作命令</h1><h2 id="生产端"><a href="#生产端" class="headerlink" title="生产端"></a>生产端</h2><p><code>xadd</code> 追加消息</p>
+<p><code>xdel</code> 删除消息，这里的删除仅仅是设置了标志位，不会实际删除消息</p>
+<p><code>xrange</code> 获取消息列表，会自动过滤已经删除的消息</p>
+<p><code>xlen</code> 消息长度</p>
+<p><code>del</code> 删除Stream</p>
+<p><code>xadd streamtest * name mark age 18</code></p>
+<p><img src="/../img/1688568248574.png" alt="1688568248574"></p>
+<p>streamtest 表示当前这个队列的名字，也就是我们一般意义上 Redis 中的 key，*号表示服务器自动生成 ID，后面顺序跟着“name mark age 18”，是我们存入当前 streamtest 这个队列的消息，采用的也是 key/value 的存储形式</p>
+<p>返回值 1626705954593-0 则是生成的消息 ID，由两部分组成：时间戳-序号。时间戳时毫秒级单位，是生成消息的 Redis 服务器时间，它是个 64 位整型。序号是在这个毫秒时间点内的消息序号。它也是个 64 位整型。 </p>
+<p>为了保证消息是有序的，因此 Redis 生成的 ID 是单调递增有序的。由于 ID 中包含时间戳部分，为了避免服务器时间错误而带来的问题（例如服务器时间延 后了），Redis 的每个 Stream 类型数据都维护一个latest_generated_id 属性，用 于记录最后一个消息的 ID。若发现当前时间戳退后（小于 latest_generated_id 所记录的），则采用时间戳不变而序号递增的方案来作为新消息 ID（这也是序号为什么使用 int64 的原因，保证有足够多的的序号），从而保证 ID 的单调递增性质。 </p>
+<p>如果不是非常特别的需求，强烈建议使用 Redis 的方案生成消息 ID，因为这种时间戳+序号的单调递增的 ID 方案，几乎可以满足全部的需求，但 ID 是支持自定义的。 </p>
+<p><img src="/../img/1688569640592.png" alt="1688569640592"></p>
+<p><code>xrange streamtest - + </code></p>
+<p>其中-表示最小值 , + 表示最大值</p>
+<p><img src="/../img/1688569715566.png" alt="1688569715566"></p>
+<p>或者我们可以指定消息 ID 的列表：</p>
+<p><img src="/../img/1688569828569.png" alt="1688569828569"></p>
+<p><code>xdel streamtest 1688569617053-0 </code></p>
+<p><code>xlen streamtest</code></p>
+<p><img src="/../img/1688569932588.png" alt="1688569932588"></p>
+<p><code>del streamtest</code> 删除整个 Stream</p>
+<p><img src="/../img/1688569976766.png" alt="1688569976766"></p>
+<h2 id="消费端"><a href="#消费端" class="headerlink" title="消费端"></a>消费端</h2><h3 id="单消费者"><a href="#单消费者" class="headerlink" title="单消费者"></a>单消费者</h3><p>虽然 Stream 中有消费者组的概念，但是可以在不定义消费组的情况下进行Stream消息的独立消费，当 Stream 没有新消息时，甚至可以阻塞等待。Redis 设计了一个单独的消费指令 xread，可以将 Stream 当成普通的消息队列 (list) 来使用。使用 xread 时，我们可以完全忽略消费组 (Consumer Group) 的存在，就好比 Stream 就是一个普通的列表 (list)。</p>
+<p><code>xread count 1 streams stream2 0-0</code></p>
+<p>“count 1”表示从 Stream 读取 1 条消息，缺省当然是头部，“streams” 可以理解为 Redis 关键字，“stream2”指明了要读取的队列名称，“0-0”指从头开始 </p>
+<p><img src="/../img/1688570297057.png" alt="1688570297057"></p>
+<p><code>xread count 2 streams stream2 1626710882927-0</code></p>
+<p>也可以指定从 streams 的消息 Id 开始(不包括命令中的消息 id)</p>
+<p><img src="/../img/1688570391869.png" alt="1688570391869"></p>
+<p><code>xread count 1 streams stream2 $</code></p>
+<p>$代表从尾部读取，上面的意思就是从尾部读取最新的一条消息,此时默认不 返回任何消息</p>
+<p><img src="/../img/1688570588903.png" alt="1688570588903"></p>
+<p>所以最好以阻塞的方式读取尾部最新的一条消息，直到新的消息的到来</p>
+<p><code>xread block 0 count 1 streams stream2 $</code></p>
+<p>block 后面的数字代表阻塞时间，单位毫秒</p>
+<p><img src="/../img/1688570687886.png" alt="1688570687886"></p>
+<p>此时我们新开一个客户端，往 stream2 中写入一条消息</p>
+<p><img src="/../img/1688570867535.png" alt="1688570867535"></p>
+<p>可以看到阻塞解除了，返回了新的消息内容，而且还显示了一个等待时间，这里我们等待了 213.99s </p>
+<p><img src="/../img/1688570898862.png" alt="1688570898862"></p>
+<p>一般来说客户端如果想要使用 xread 进行顺序消费，一定要记住当前消费到哪里了，也就是返回的消息 ID。下次继续调用 xread 时，将上次返回的最后一个消息 ID 作为参数传递进去，就可以继续消费后续的消息。</p>
+<h3 id="消费组"><a href="#消费组" class="headerlink" title="消费组"></a>消费组</h3><h4 id="创建消费组"><a href="#创建消费组" class="headerlink" title="创建消费组"></a>创建消费组</h4><p>Stream 通过 xgroup create 指令创建消费组 (Consumer Group)，需要传递起始消息 ID 参数用来初始化 last_delivered_id 变量。 </p>
+<p><code>xgroup create stream2 cg1 0-0 </code> </p>
+<p>“stream2”指明了要读取的队列名称，“a1”表示消费组的名称，“0-0” 表示从头开始消费 </p>
+<p><img src="/../img/1689006246857.png" alt="1689006246857"></p>
+<p><code>xgroup create stream2 a2 $</code></p>
+<p>$ 表示从尾部开始消费，只接受新消息，当前 Stream 消息会全部忽略</p>
+<p><img src="/../img/1689006325251.png" alt="1689006325251"></p>
+<p>现在我们可以用 xinfo 命令来看看 stream2 的情况：</p>
+<p><code>xinfo stream stream2</code></p>
+<p><img src="/../img/1689006446756.png" alt="1689006446756"></p>
+<p><code>xinfo groups stream2</code> 查看消费组情况</p>
+<p><img src="/../img/1689006582453.png" alt="1689006582453"></p>
+<h4 id="消息消费"><a href="#消息消费" class="headerlink" title="消息消费"></a>消息消费</h4><p>有了消费组，自然还需要消费者，Stream 提供了 xreadgroup 指令可以进行消费组的组内消费，需要提供消费组名称、消费者名称和起始消息 ID。 </p>
+<p>它同 xread 一样，也可以阻塞等待新消息。读到新消息后，对应的消息 ID 就会进入消费者的 PEL(正在处理的消息) 结构里，客户端处理完毕后使用 xack 指令通知服务器，本条消息已经处理完毕，该消息 ID 就会从 PEL 中移除。</p>
+<p><code>xreadgroup GROUP a1 c1 count 1 streams stream2 &gt;</code></p>
+<p>“GROUP”属于关键字，“a1”是消费组名称，“c1”是消费者名称，“count 1”指明了消费数量，&gt; 号表示从当前消费组的 last_delivered_id 后面开始读，每当消费者读取一条消息，last_delivered_id 变量就会前进</p>
+<p><img src="/../img/1689007249258.png" alt="1689007249258"></p>
+<p>前面我们定义 cg1 的时候是从头开始消费的，自然就获得 Stream2 中第一条消息</p>
+<p>再执行一次上面的命令</p>
+<p><img src="/../img/1689007293817.png" alt="1689007293817"></p>
+<p>自然就读取到了下条消息。 </p>
+<p>我们将 Stream2 中的消息读取完，很自然就没有消息可读了</p>
+<p><code>xreadgroup GROUP a1 c1 count 2 streams stream2 &gt;</code></p>
+<p><img src="/../img/1689007341321.png" alt="1689007341321"></p>
+<p>然后设置阻塞等待</p>
+<p><code>xreadgroup GROUP a1 c1 block 0 count 1 streams stream2 &gt;</code></p>
+<p><img src="/../img/1689007404815.png" alt="1689007404815"></p>
+<p>我们新开一个客户端，发送消息到 stream2</p>
+<p><img src="/../img/1689007462399.png" alt="1689007462399"></p>
+<p>回到原来的客户端，发现阻塞解除，收到新消息</p>
+<p><img src="/../img/1689007482159.png" alt="1689007482159"></p>
+<p>我们来观察一下观察消费组状态</p>
+<p><img src="/../img/1689007608644.png" alt="1689007608644"></p>
+<p>如果同一个消费组有多个消费者，我们还可以通过 <code>xinfo consumers</code> 指令观察每个消费者的状态</p>
+<p><img src="/../img/1689007670130.png" alt="1689007670130"></p>
+<p>可以看到目前 c1 这个消费者有 4 条待 ACK 的消息，空闲了 195192 ms 没有读取消息。</p>
+<p>如果我们确认一条消息 </p>
+<p><code>xack stream2 a1 1689007452731-0 xxx-x xxx-x</code> </p>
+<p>就可以看到待确认消息变成了 4 条 (xack 允许带多个消息 id)</p>
+<p><img src="/../img/1689007757412.png" alt="1689007757412"></p>
+<p>同时 Stream 还提供了命令 <code>XPENDIING</code> 用来获消费组或消费内消费者的未处理完毕的消息，每个 Pending 的消息有 4 个属性： </p>
+<p>消息 ID </p>
+<p>所属消费者 </p>
+<p>IDLE，已读取时长 </p>
+<p>delivery counter，消息被读取次数 </p>
+<p>命令 <code>XCLAIM</code> 用以进行消息转移的操作，将某个消息转移到自己的 Pending 列表中。需要设置组、转移的目标消费者和消息 ID，同时需要提供 IDLE（已被读取时长），只有超过这个时长，才能被转移。更多的 Redis 的 Stream 命令请大家参考 Redis 官方文档： </p>
+<p><a target="_blank" rel="noopener" href="https://redis.io/topics/streams-intro">https://redis.io/topics/streams-intro</a> </p>
+<p><a target="_blank" rel="noopener" href="https://redis.io/commands">https://redis.io/commands</a> </p>
+<p>同时 Redis 文档中，在每个命令的详情页右边会显示“Related commands”，可以通过这个列表快速了解相关的命令和进入具体命令的详情页。 </p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/07/02/Redis%E9%98%9F%E5%88%97Stream%E8%AF%A6%E8%A7%A3/">http://example.com/2023/07/02/Redis%E9%98%9F%E5%88%97Stream%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/redis/">redis</a></div><div class="post_share"><div class="social-share" data-image="/../img/redis.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/07/01/Redis%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83%E4%B8%8E%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" title="Redis开发规范与性能优化"><img class="cover" src="/../img/redis.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Redis开发规范与性能优化</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/06/01/Redis5.0.14%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B/" title="Redis5.0.14安装教程"><img class="cover" src="/../img/redis.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-01</div><div class="title">Redis5.0.14安装教程</div></div></a></div><div><a href="/2023/06/27/Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E6%88%98/" title="Redisson分布式锁原理"><img class="cover" src="/../img/redis.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-27</div><div class="title">Redisson分布式锁原理</div></div></a></div><div><a href="/2023/06/03/Redis%E4%B8%BB%E4%BB%8E%E6%9E%B6%E6%9E%84%E5%92%8C%E5%93%A8%E5%85%B5%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3/" title="Redis主从架构和哨兵架构详解"><img class="cover" src="/../img/redis.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-03</div><div class="title">Redis主从架构和哨兵架构详解</div></div></a></div><div><a href="/2023/07/01/Redis%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83%E4%B8%8E%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" title="Redis开发规范与性能优化"><img class="cover" src="/../img/redis.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-01</div><div class="title">Redis开发规范与性能优化</div></div></a></div><div><a href="/2023/05/30/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化"><img class="cover" src="/../img/redis.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-30</div><div class="title">Redis持久化</div></div></a></div><div><a href="/2023/06/12/Redis%E9%AB%98%E5%8F%AF%E7%94%A8%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3/" title="Redis高可用集群架构详解"><img class="cover" src="/../img/gaokeyongjiqun.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-12</div><div class="title">Redis高可用集群架构详解</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">愿内心深处的懦弱 不再将我吞噬</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1%E3%80%81Stream%E6%80%BB%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">1、Stream总述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2%E3%80%81%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C%E5%91%BD%E4%BB%A4"><span class="toc-number">2.</span> <span class="toc-text">2、常用操作命令</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%AB%AF"><span class="toc-number">2.1.</span> <span class="toc-text">生产端</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E8%B4%B9%E7%AB%AF"><span class="toc-number">2.2.</span> <span class="toc-text">消费端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%95%E6%B6%88%E8%B4%B9%E8%80%85"><span class="toc-number">2.2.1.</span> <span class="toc-text">单消费者</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B6%88%E8%B4%B9%E7%BB%84"><span class="toc-number">2.2.2.</span> <span class="toc-text">消费组</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%B6%88%E8%B4%B9%E7%BB%84"><span class="toc-number">2.2.2.1.</span> <span class="toc-text">创建消费组</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E6%B6%88%E8%B4%B9"><span class="toc-number">2.2.2.2.</span> <span class="toc-text">消息消费</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/07/02/Redis%E9%98%9F%E5%88%97Stream%E8%AF%A6%E8%A7%A3/" title="Redis队列Stream详解"><img src="/../img/redis.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Redis队列Stream详解"></a><div class="content"><a class="title" href="/2023/07/02/Redis%E9%98%9F%E5%88%97Stream%E8%AF%A6%E8%A7%A3/" title="Redis队列Stream详解">Redis队列Stream详解</a><time datetime="2023-07-02T15:18:00.000Z" title="发表于 2023-07-02 23:18:00">2023-07-02</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/01/Redis%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83%E4%B8%8E%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" title="Redis开发规范与性能优化"><img src="/../img/redis.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Redis开发规范与性能优化"></a><div class="content"><a class="title" href="/2023/07/01/Redis%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83%E4%B8%8E%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" title="Redis开发规范与性能优化">Redis开发规范与性能优化</a><time datetime="2023-07-01T15:52:00.000Z" title="发表于 2023-07-01 23:52:00">2023-07-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/01/Redis%E9%AB%98%E5%B9%B6%E5%8F%91%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1/" title="Redis高并发缓存设计"><img src="/../img/redis.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Redis高并发缓存设计"></a><div class="content"><a class="title" href="/2023/07/01/Redis%E9%AB%98%E5%B9%B6%E5%8F%91%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1/" title="Redis高并发缓存设计">Redis高并发缓存设计</a><time datetime="2023-07-01T06:20:00.000Z" title="发表于 2023-07-01 14:20:00">2023-07-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/27/Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E6%88%98/" title="Redisson分布式锁原理"><img src="/../img/redis.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Redisson分布式锁原理"></a><div class="content"><a class="title" href="/2023/06/27/Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E6%88%98/" title="Redisson分布式锁原理">Redisson分布式锁原理</a><time datetime="2023-06-27T12:11:00.000Z" title="发表于 2023-06-27 20:11:00">2023-06-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/22/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%94)%E2%80%94%E2%80%94SpringBoot%E6%95%B4%E5%90%88MongoDB/" title="MongoDB基础入门(五)——SpringBoot整合MongoDB"><img src="/../img/mongodb.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MongoDB基础入门(五)——SpringBoot整合MongoDB"></a><div class="content"><a class="title" href="/2023/06/22/MongoDB%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8(%E4%BA%94)%E2%80%94%E2%80%94SpringBoot%E6%95%B4%E5%90%88MongoDB/" title="MongoDB基础入门(五)——SpringBoot整合MongoDB">MongoDB基础入门(五)——SpringBoot整合MongoDB</a><time datetime="2023-06-22T12:21:00.000Z" title="发表于 2023-06-22 20:21:00">2023-06-22</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
