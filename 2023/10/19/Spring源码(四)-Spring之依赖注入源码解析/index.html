@@ -1,0 +1,319 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Spring源码(四)-Spring之依赖注入源码解析 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Spring中到底有几种依赖注入的方式？首先分两种：  手动注入 自动注入  手动注入在XML中定义Bean时，就是手动注入，因为是程序员手动给某个属性指定了值。   123<bean name=&quot;userService&quot; class=&quot;com.radish.service.UserService&quot;>	<property name=&amp;quo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring源码(四)-Spring之依赖注入源码解析">
+<meta property="og:url" content="http://example.com/2023/10/19/Spring%E6%BA%90%E7%A0%81(%E5%9B%9B)-Spring%E4%B9%8B%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="Spring中到底有几种依赖注入的方式？首先分两种：  手动注入 自动注入  手动注入在XML中定义Bean时，就是手动注入，因为是程序员手动给某个属性指定了值。   123<bean name=&quot;userService&quot; class=&quot;com.radish.service.UserService&quot;>	<property name=&amp;quo">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/spring-%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2023-10-19T14:00:00.000Z">
+<meta property="article:modified_time" content="2023-10-19T15:06:10.095Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/spring-%E5%B0%81%E9%9D%A2.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/10/19/Spring%E6%BA%90%E7%A0%81(%E5%9B%9B)-Spring%E4%B9%8B%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Spring源码(四)-Spring之依赖注入源码解析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-10-19 23:06:10'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Spring源码(四)-Spring之依赖注入源码解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-10-19T14:00:00.000Z" title="发表于 2023-10-19 22:00:00">2023-10-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-10-19T15:06:10.095Z" title="更新于 2023-10-19 23:06:10">2023-10-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/">Java后端</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/Spring/">Spring</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Spring源码(四)-Spring之依赖注入源码解析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h1 id="Spring中到底有几种依赖注入的方式？"><a href="#Spring中到底有几种依赖注入的方式？" class="headerlink" title="Spring中到底有几种依赖注入的方式？"></a>Spring中到底有几种依赖注入的方式？</h1><p>首先分两种：</p>
+<ol>
+<li>手动注入</li>
+<li>自动注入</li>
+</ol>
+<h2 id="手动注入"><a href="#手动注入" class="headerlink" title="手动注入"></a>手动注入</h2><p>在XML中定义Bean时，就是手动注入，因为是<strong>程序员手动给某个属性指定了值。</strong>  </p>
+<figure class="highlight xml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">name</span>=<span class="string">"userService"</span> <span class="attr">class</span>=<span class="string">"com.radish.service.UserService"</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"orderService"</span> <span class="attr">ref</span>=<span class="string">"orderService"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>上面这种底层是通过<strong>set方法</strong>进行注入。 </p>
+<figure class="highlight xml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">name</span>=<span class="string">"userService"</span> <span class="attr">class</span>=<span class="string">"com.radish.service.UserService"</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">index</span>=<span class="string">"0"</span> <span class="attr">ref</span>=<span class="string">"orderService"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>上面这种底层是通过<strong>构造方法</strong>进行注入。 </p>
+<p>所以手动注入的底层也就是分为两种：</p>
+<ol>
+<li>set方法注入</li>
+<li>构造方法注入</li>
+</ol>
+<h2 id="自动注入"><a href="#自动注入" class="headerlink" title="自动注入"></a>自动注入</h2><p>自动注入又分为两种：</p>
+<ol>
+<li>XML的autowire自动注入</li>
+<li>@Autowired注解的自动注入</li>
+</ol>
+<h3 id="XML的autowire自动注入"><a href="#XML的autowire自动注入" class="headerlink" title="XML的autowire自动注入"></a>XML的autowire自动注入</h3><p>在XML中，我们可以在定义一个Bean时去指定这个Bean的自动注入模式： </p>
+<ol>
+<li>byType</li>
+<li>byName</li>
+<li>constructor</li>
+<li>default</li>
+<li>no</li>
+</ol>
+<p>比如：</p>
+<figure class="highlight xml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userService"</span> <span class="attr">class</span>=<span class="string">"com.radish.service.UserService"</span> <span class="attr">autowire</span>=<span class="string">"byType"</span>/&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>这么写，表示Spring会自动的给userService中所有的属性自动赋值（<strong>不需要</strong>这个属性上有@Autowired注解，但需要这个属性有对应的<strong>set方法</strong>）。 </p>
+<p>在创建Bean的过程中，在填充属性时，Spring会去解析当前类，把<strong>当前类的所有方法</strong>都解析出来，Spring会去解析每个方法得到对应的PropertyDescriptor对象，PropertyDescriptor中有几个属性：</p>
+<ol>
+<li>name：这个name并不是方法的名字，而是拿方法名字经过处理后的名字<ol>
+<li><strong>如果方法名字以“get”开头，比如“getXXX”,那么name=XXX</strong></li>
+<li><strong>如果方法名字以“is”开头，比如“isXXX”,那么name=XXX</strong></li>
+<li><strong>如果方法名字以“set”开头，比如“setXXX”,那么name=XXX</strong></li>
+</ol>
+</li>
+<li><strong>readMethodRef：表示get方法的Method对象的引用</strong></li>
+<li><strong>readMethodName：表示get方法的名字</strong></li>
+<li><strong>writeMethodRef：表示set方法的Method对象的引用</strong></li>
+<li><strong>writeMethodName：表示set方法的名字</strong></li>
+<li><strong>propertyTypeRef：如果有get方法那么对应的就是返回值的类型，如果是set方法那么对应的就是set方法中唯一参数的类型</strong></li>
+</ol>
+<p><strong>get方法的定义是：</strong>方法参数个数为0个，并且 （方法名字以”get”开头 或者 方法名字以”is”开头并且方法的返回类型为boolean） </p>
+<p><strong>set方法的定义是：</strong>方法参数个数为1个，并且 （方法名字以”set”开头并且方法返回类型为void） </p>
+<p>所以，Spring在通过byName的自动填充属性时流程是：</p>
+<ol>
+<li>找到所有set方法所对应的XXX部分的名字</li>
+<li>根据XXX部分的名字去获取bean</li>
+</ol>
+<p>Spring在通过byType的自动填充属性时流程是： </p>
+<ol>
+<li>获取到set方法中的唯一参数的参数类型，并且根据该类型去容器中获取bean</li>
+<li>如果找到多个，会报错。</li>
+</ol>
+<p>以上，分析了autowire的byType和byName情况，那么接下来分析constructor，constructor表示通过构造方法注入，其实这种情况就比较简单了，没有byType和byName那么复杂。 </p>
+<p>如果是constructor，那么就可以不写set方法了，当某个bean是通过构造方法来注入时，spring利用构造方法的参数信息从Spring容器中去找bean，找到bean之后作为参数传给构造方法，从而实例化得到一个bean对象，并完成属性赋值（属性赋值的代码得程序员来写）。 </p>
+<p>我们这里先不考虑一个类有多个构造方法的情况，后面单独讲<strong>推断构造方法</strong>。我们这里只考虑只有一个有参构造方法。 </p>
+<p>其实构造方法注入相当于byType+byName，普通的byType是根据set方法中的参数类型去找bean，找到多个会报错，而constructor就是通过构造方法中的参数类型去找bean，如果找到多个会根据参数名确定。 </p>
+<p>另外两个： </p>
+<ol>
+<li>no，表示关闭autowire</li>
+<li>default，表示默认值，我们一直演示的某个bean的autowire，而也可以直接在&lt;beans&gt;标签中设置autowire，如果设置了，那么&lt;bean&gt;标签中设置的autowire如果为default，那么则会用&lt;beans&gt;标签中设置的autowire。</li>
+</ol>
+<p>可以发现XML中的自动注入是挺强大的，那么问题来了，<strong>为什么我们平时都是用的@Autowired注解呢？而没有用上文说的这种自动注入方式呢？</strong></p>
+<p>@Autowired注解相当于XML中的autowire属性的<strong>注解方式的替代</strong>。这是在官网上有提到的。</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">从本质上讲，@Autowired注解提供了与autowire相同的功能，但是拥有更细粒度的控制和更广泛的适用性。 </span><br></pre></td></tr></tbody></table></figure>
+
+<p>注意：<strong>更细粒度的控制</strong>。 </p>
+<p>XML中的autowire控制的是整个bean的所有属性，而@Autowired注解是直接写在某个属性、某个set方法、某个构造方法上的。 </p>
+<p>再举个例子，如果一个类有多个构造方法，那么如果用XML的autowire=constructor，你无法控制到底用哪个构造方法，而你可以用@Autowired注解来直接指定你想用哪个构造方法。 </p>
+<p>同时，用@Autowired注解，还可以控制，哪些属性想被自动注入，哪些属性不想，这也是细粒度的控制。 </p>
+<p>但是@Autowired无法区分byType和byName，@Autowired是先byType，如果找到多个则byName。 </p>
+<p>那么XML的自动注入底层其实也就是: </p>
+<ol>
+<li>set方法注入</li>
+<li>构造方法注入</li>
+</ol>
+<h3 id="Autowired注解的自动注入"><a href="#Autowired注解的自动注入" class="headerlink" title="@Autowired注解的自动注入"></a>@Autowired注解的自动注入</h3><p>上文说了@Autowired注解，是byType和byName的结合。</p>
+<p>@Autowired注解可以写在：</p>
+<ol>
+<li>属性上：先根据<strong>属性类型</strong>去找Bean，如果找到多个再根据<strong>属性名</strong>确定一个</li>
+<li>构造方法上：先根据方法<strong>参数类型</strong>去找Bean，如果找到多个再根据<strong>参数名</strong>确定一个</li>
+<li>set方法上：先根据方法<strong>参数类型</strong>去找Bean，如果找到多个再根据<strong>参数名</strong>确定一个</li>
+</ol>
+<p>而这种底层到了：</p>
+<ol>
+<li>属性注入</li>
+<li>set方法注入</li>
+<li>构造方法注入</li>
+</ol>
+<h1 id="寻找注入点"><a href="#寻找注入点" class="headerlink" title="寻找注入点"></a>寻找注入点</h1><p>在创建一个Bean的过程中，Spring会利用AutowiredAnnotationBeanPostProcessor的**postProcessMergedBeanDefinition()**找出注入点并缓存，找注入点的流程为：</p>
+<ol>
+<li>遍历当前类的所有的属性字段Field</li>
+<li>查看字段上是否存在@Autowired、@Value、@Inject中的其中任意一个，存在则认为该字段是一个注入点</li>
+<li>如果字段是static的，则不进行注入</li>
+<li>获取@Autowired中的required属性的值</li>
+<li>将字段信息构造成一个<strong>AutowiredFieldElement对象</strong>，作为一个<strong>注入点对象</strong>添加到currElements集合中。</li>
+<li>遍历当前类的所有方法Method</li>
+<li>判断当前Method是否是<strong>桥接方法</strong>，如果是找到原方法</li>
+<li>查看方法上是否存在@Autowired、@Value、@Inject中的其中任意一个，存在则认为该方法是一个注入点</li>
+<li>如果方法是static的，则不进行注入</li>
+<li>获取@Autowired中的required属性的值</li>
+<li>将方法信息构造成一个<strong>AutowiredMethodElement对象</strong>，作为一个<strong>注入点对象</strong>添加到currElements集合中。</li>
+<li>遍历完当前类的字段和方法后，将<strong>遍历父类</strong>的，直到没有父类。</li>
+<li>最后将currElements集合封装成一个InjectionMetadata对象，作为当前Bean对于的注入点集合对象，并缓存。</li>
+</ol>
+<h2 id="static的字段或方法为什么不支持"><a href="#static的字段或方法为什么不支持" class="headerlink" title="static的字段或方法为什么不支持"></a>static的字段或方法为什么不支持</h2><p>在创建一个Bean的过程中，Spring会利用AutowiredAnnotationBeanPostProcessor的**postProcessMergedBeanDefinition()**找出注入点并缓存，找注入点的流程为： </p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Scope("prototype")</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderService</span> {</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Scope("prototype")</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserService</span>  {</span><br><span class="line">	<span class="meta">@Autowired</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> OrderService orderService;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">test</span><span class="params">()</span> {</span><br><span class="line">		System.out.println(<span class="string">"test123"</span>);</span><br><span class="line">	}</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>看上面代码，UserService和OrderService都是原型Bean，假设Spring支持static字段进行自动注入，那么现在调用两次 </p>
+<ol>
+<li>UserService userService1 = context.getBean(“userService”)</li>
+<li>UserService userService2 = context.getBean(“userService”)</li>
+</ol>
+<p>问此时，userService1的orderService值是什么？还是它自己注入的值吗？</p>
+<p>答案是不是，一旦userService2创建好了之后，static orderService字段的值就发生了修改了，从而出现bug。</p>
+<h2 id="桥接方法"><a href="#桥接方法" class="headerlink" title="桥接方法"></a>桥接方法</h2><figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">UserInterface</span>&lt;T&gt; {</span><br><span class="line">	<span class="keyword">void</span> <span class="title function_">setOrderService</span><span class="params">(T t)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserService</span> <span class="keyword">implements</span> <span class="title class_">UserInterface</span>&lt;OrderService&gt; {</span><br><span class="line">	<span class="keyword">private</span> OrderService orderService;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="meta">@Autowired</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setOrderService</span><span class="params">(OrderService orderService)</span> {</span><br><span class="line">		<span class="built_in">this</span>.orderService = orderService;</span><br><span class="line">	}</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">test</span><span class="params">()</span> {</span><br><span class="line">		System.out.println(<span class="string">"test123"</span>);</span><br><span class="line">	}</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>UserService对应的字节码为： </p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// class version 52.0 (52)</span></span><br><span class="line"><span class="comment">// access flags 0x21</span></span><br><span class="line"><span class="comment">// signature Ljava/lang/Object;Lcom/zhouyu/service/UserInterface&lt;Lcom/zhouyu/service/OrderService;&gt;;</span></span><br><span class="line"><span class="comment">// declaration: com/zhouyu/service/UserService implements com.zhouyu.service.UserInterface&lt;com.zhouyu.service.OrderService&gt;</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">com</span>/zhouyu/service/UserService <span class="keyword">implements</span> <span class="title class_">com</span>/zhouyu/service/UserInterface {</span><br><span class="line"></span><br><span class="line">  <span class="comment">// compiled from: UserService.java</span></span><br><span class="line"></span><br><span class="line">  <span class="meta">@Lorg</span>/springframework/stereotype/Component;()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// access flags 0x2</span></span><br><span class="line">  <span class="keyword">private</span> Lcom/zhouyu/service/OrderService; orderService</span><br><span class="line"></span><br><span class="line">  <span class="comment">// access flags 0x1</span></span><br><span class="line">  <span class="keyword">public</span> &lt;init&gt;()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER <span class="number">12</span> L0</span><br><span class="line">    ALOAD <span class="number">0</span></span><br><span class="line">    INVOKESPECIAL java/lang/Object.&lt;init&gt; ()V</span><br><span class="line">    RETURN</span><br><span class="line">   L1</span><br><span class="line">    LOCALVARIABLE <span class="built_in">this</span> Lcom/zhouyu/service/UserService; L0 L1 <span class="number">0</span></span><br><span class="line">    MAXSTACK = <span class="number">1</span></span><br><span class="line">    MAXLOCALS = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// access flags 0x1</span></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">setOrderService</span><span class="params">(Lcom/zhouyu/service/OrderService;)</span>V</span><br><span class="line">  <span class="meta">@Lorg</span>/springframework/beans/factory/annotation/Autowired;()</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER <span class="number">19</span> L0</span><br><span class="line">    ALOAD <span class="number">0</span></span><br><span class="line">    ALOAD <span class="number">1</span></span><br><span class="line">    PUTFIELD com/zhouyu/service/UserService.orderService : Lcom/zhouyu/service/OrderService;</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER <span class="number">20</span> L1</span><br><span class="line">    RETURN</span><br><span class="line">   L2</span><br><span class="line">    LOCALVARIABLE <span class="built_in">this</span> Lcom/zhouyu/service/UserService; L0 L2 <span class="number">0</span></span><br><span class="line">    LOCALVARIABLE orderService Lcom/zhouyu/service/OrderService; L0 L2 <span class="number">1</span></span><br><span class="line">    MAXSTACK = <span class="number">2</span></span><br><span class="line">    MAXLOCALS = <span class="number">2</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// access flags 0x1</span></span><br><span class="line">  <span class="keyword">public</span> <span class="title function_">test</span><span class="params">()</span>V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER <span class="number">23</span> L0</span><br><span class="line">    GETSTATIC java/lang/System.out : Ljava/io/PrintStream;</span><br><span class="line">    LDC <span class="string">"test123"</span></span><br><span class="line">    INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER <span class="number">24</span> L1</span><br><span class="line">    RETURN</span><br><span class="line">   L2</span><br><span class="line">    LOCALVARIABLE <span class="built_in">this</span> Lcom/zhouyu/service/UserService; L0 L2 <span class="number">0</span></span><br><span class="line">    MAXSTACK = <span class="number">2</span></span><br><span class="line">    MAXLOCALS = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// access flags 0x1041</span></span><br><span class="line">  <span class="keyword">public</span> synthetic bridge <span class="title function_">setOrderService</span><span class="params">(Ljava/lang/Object;)</span>V</span><br><span class="line">  <span class="meta">@Lorg</span>/springframework/beans/factory/annotation/Autowired;()</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER <span class="number">11</span> L0</span><br><span class="line">    ALOAD <span class="number">0</span></span><br><span class="line">    ALOAD <span class="number">1</span></span><br><span class="line">    CHECKCAST com/zhouyu/service/OrderService</span><br><span class="line">    INVOKEVIRTUAL com/zhouyu/service/UserService.setOrderService (Lcom/zhouyu/service/OrderService;)V</span><br><span class="line">    RETURN</span><br><span class="line">   L1</span><br><span class="line">    LOCALVARIABLE <span class="built_in">this</span> Lcom/zhouyu/service/UserService; L0 L1 <span class="number">0</span></span><br><span class="line">    MAXSTACK = <span class="number">2</span></span><br><span class="line">    MAXLOCALS = <span class="number">2</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以看到在UserSerivce的字节码中有两个setOrderService方法： </p>
+<ol>
+<li>public setOrderService(Lcom/zhouyu/service/OrderService;)V</li>
+<li>public synthetic bridge setOrderService(Ljava/lang/Object;)V</li>
+</ol>
+<p>并且都是存在@Autowired注解的。 </p>
+<p>所以在Spring中需要处理这种情况，当遍历到桥接方法时，得找到原方法。 </p>
+<h1 id="注入点进行注入"><a href="#注入点进行注入" class="headerlink" title="注入点进行注入"></a>注入点进行注入</h1><p>Spring在AutowiredAnnotationBeanPostProcessor的**postProcessProperties()**方法中，会遍历所找到的注入点依次进行注入。 </p>
+<h2 id="字段注入"><a href="#字段注入" class="headerlink" title="字段注入"></a>字段注入</h2><ol>
+<li>遍历所有的<strong>AutowiredFieldElement对象。</strong></li>
+<li>将对应的字段封装为<strong>DependencyDescriptor对象</strong>。</li>
+<li>调用BeanFactory的resolveDependency()方法，传入<strong>DependencyDescriptor对象</strong>，进行依赖查找，找到当前字段所匹配的Bean对象。</li>
+<li>将<strong>DependencyDescriptor对象</strong>和所找到的<strong>结果对象beanName</strong>封装成一个<strong>ShortcutDependencyDescriptor对象</strong>作为缓存，比如如果当前Bean是原型Bean，那么下次再来创建该Bean时，就可以直接拿缓存的结果对象beanName去BeanFactory中去拿bean对象了，不用再次进行查找了</li>
+<li>利用反射将结果对象赋值给字段。</li>
+</ol>
+<h2 id="Set方法注入"><a href="#Set方法注入" class="headerlink" title="Set方法注入"></a>Set方法注入</h2><ol>
+<li>遍历所有的<strong>AutowiredMethodElement对象</strong></li>
+<li>遍历将对应的方法的参数，将每个参数封装成<strong>MethodParameter对象</strong></li>
+<li>将<strong>MethodParameter对象</strong>封装为<strong>DependencyDescriptor对象</strong></li>
+<li>调用BeanFactory的resolveDependency()方法，传入<strong>DependencyDescriptor对象</strong>，进行依赖查找，找到当前方法参数所匹配的Bean对象。</li>
+<li>将<strong>DependencyDescriptor对象</strong>和所找到的<strong>结果对象beanName</strong>封装成一个<strong>ShortcutDependencyDescriptor对象</strong>作为缓存，比如如果当前Bean是原型Bean，那么下次再来创建该Bean时，就可以直接拿缓存的结果对象beanName去BeanFactory中去那bean对象了，不用再次进行查找了</li>
+<li>利用反射将找到的所有结果对象传给当前方法，并执行。</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/10/19/Spring%E6%BA%90%E7%A0%81(%E5%9B%9B)-Spring%E4%B9%8B%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">http://example.com/2023/10/19/Spring%E6%BA%90%E7%A0%81(%E5%9B%9B)-Spring%E4%B9%8B%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Spring/">Spring</a></div><div class="post_share"><div class="social-share" data-image="/../img/spring-%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/11/28/%5B%E8%BD%AC%E8%BD%BD%5D%E9%85%8D%E7%BD%AEVM%E8%99%9A%E6%8B%9F%E6%9C%BACentos7%E7%BD%91%E7%BB%9C/" title="【转载】配置VMware虚拟机Centos7网络"><img class="cover" src="/../img/redis.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">【转载】配置VMware虚拟机Centos7网络</div></div></a></div><div class="next-post pull-right"><a href="/2023/10/17/Java-%E6%96%B9%E6%B3%95%E5%BC%95%E7%94%A8/" title="Java-方法引用"><img class="cover" src="/../img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Java-方法引用</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/09/04/Spring%E6%BA%90%E7%A0%81(%E4%BA%8C)-%E6%89%8B%E5%86%99%E6%A8%A1%E6%8B%9FSpring%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" title="Spring源码(二)-手写模拟Spring底层原理"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-04</div><div class="title">Spring源码(二)-手写模拟Spring底层原理</div></div></a></div><div><a href="/2023/09/11/Spring%E6%BA%90%E7%A0%81(%E4%B8%89)-Spring%E4%B9%8BBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(三)-Spring之Bean生命周期源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-11</div><div class="title">Spring源码(三)-Spring之Bean生命周期源码解析</div></div></a></div><div><a href="/2023/08/28/Spring%E6%BA%90%E7%A0%81(%E4%B8%80)-Spring%E7%9A%84%E5%BA%95%E5%B1%82%E6%9E%B6%E6%9E%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E8%A7%A3%E6%9E%90/" title="Spring源码(一)-Spring的底层架构核心概念解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-28</div><div class="title">Spring源码(一)-Spring的底层架构核心概念解析</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">愿内心深处的懦弱 不再将我吞噬</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Spring%E4%B8%AD%E5%88%B0%E5%BA%95%E6%9C%89%E5%87%A0%E7%A7%8D%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E7%9A%84%E6%96%B9%E5%BC%8F%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">Spring中到底有几种依赖注入的方式？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%8B%E5%8A%A8%E6%B3%A8%E5%85%A5"><span class="toc-number">1.1.</span> <span class="toc-text">手动注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5"><span class="toc-number">1.2.</span> <span class="toc-text">自动注入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#XML%E7%9A%84autowire%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5"><span class="toc-number">1.2.1.</span> <span class="toc-text">XML的autowire自动注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Autowired%E6%B3%A8%E8%A7%A3%E7%9A%84%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5"><span class="toc-number">1.2.2.</span> <span class="toc-text">@Autowired注解的自动注入</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%BB%E6%89%BE%E6%B3%A8%E5%85%A5%E7%82%B9"><span class="toc-number">2.</span> <span class="toc-text">寻找注入点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#static%E7%9A%84%E5%AD%97%E6%AE%B5%E6%88%96%E6%96%B9%E6%B3%95%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E6%94%AF%E6%8C%81"><span class="toc-number">2.1.</span> <span class="toc-text">static的字段或方法为什么不支持</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A1%A5%E6%8E%A5%E6%96%B9%E6%B3%95"><span class="toc-number">2.2.</span> <span class="toc-text">桥接方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B3%A8%E5%85%A5%E7%82%B9%E8%BF%9B%E8%A1%8C%E6%B3%A8%E5%85%A5"><span class="toc-number">3.</span> <span class="toc-text">注入点进行注入</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E6%B3%A8%E5%85%A5"><span class="toc-number">3.1.</span> <span class="toc-text">字段注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Set%E6%96%B9%E6%B3%95%E6%B3%A8%E5%85%A5"><span class="toc-number">3.2.</span> <span class="toc-text">Set方法注入</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/11/28/%5B%E8%BD%AC%E8%BD%BD%5D%E9%85%8D%E7%BD%AEVM%E8%99%9A%E6%8B%9F%E6%9C%BACentos7%E7%BD%91%E7%BB%9C/" title="【转载】配置VMware虚拟机Centos7网络"><img src="/../img/redis.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="【转载】配置VMware虚拟机Centos7网络"></a><div class="content"><a class="title" href="/2023/11/28/%5B%E8%BD%AC%E8%BD%BD%5D%E9%85%8D%E7%BD%AEVM%E8%99%9A%E6%8B%9F%E6%9C%BACentos7%E7%BD%91%E7%BB%9C/" title="【转载】配置VMware虚拟机Centos7网络">【转载】配置VMware虚拟机Centos7网络</a><time datetime="2023-11-28T14:55:23.000Z" title="发表于 2023-11-28 22:55:23">2023-11-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/10/19/Spring%E6%BA%90%E7%A0%81(%E5%9B%9B)-Spring%E4%B9%8B%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(四)-Spring之依赖注入源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(四)-Spring之依赖注入源码解析"></a><div class="content"><a class="title" href="/2023/10/19/Spring%E6%BA%90%E7%A0%81(%E5%9B%9B)-Spring%E4%B9%8B%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(四)-Spring之依赖注入源码解析">Spring源码(四)-Spring之依赖注入源码解析</a><time datetime="2023-10-19T14:00:00.000Z" title="发表于 2023-10-19 22:00:00">2023-10-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/10/17/Java-%E6%96%B9%E6%B3%95%E5%BC%95%E7%94%A8/" title="Java-方法引用"><img src="/../img/java.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java-方法引用"></a><div class="content"><a class="title" href="/2023/10/17/Java-%E6%96%B9%E6%B3%95%E5%BC%95%E7%94%A8/" title="Java-方法引用">Java-方法引用</a><time datetime="2023-10-17T13:52:00.000Z" title="发表于 2023-10-17 21:52:00">2023-10-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/10/16/Java-Stream%E6%B5%81/" title="Java-Stream流"><img src="/../img/java-stream.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java-Stream流"></a><div class="content"><a class="title" href="/2023/10/16/Java-Stream%E6%B5%81/" title="Java-Stream流">Java-Stream流</a><time datetime="2023-10-16T13:52:00.000Z" title="发表于 2023-10-16 21:52:00">2023-10-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/11/Spring%E6%BA%90%E7%A0%81(%E4%B8%89)-Spring%E4%B9%8BBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(三)-Spring之Bean生命周期源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(三)-Spring之Bean生命周期源码解析"></a><div class="content"><a class="title" href="/2023/09/11/Spring%E6%BA%90%E7%A0%81(%E4%B8%89)-Spring%E4%B9%8BBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(三)-Spring之Bean生命周期源码解析">Spring源码(三)-Spring之Bean生命周期源码解析</a><time datetime="2023-09-11T13:52:00.000Z" title="发表于 2023-09-11 21:52:00">2023-09-11</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
