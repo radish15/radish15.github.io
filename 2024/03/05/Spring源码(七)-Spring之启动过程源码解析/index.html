@@ -1,0 +1,365 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Spring源码(七)-Spring之启动过程源码解析 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="推断构造方法流程图：https://www.processon.com/view/link/5f97bc717d9c0806f291d7eb  前言通常，我们说的Spring启动，就是构造ApplicationContext对象以及调用refresh()方法的过程。  首先，Spring启动过程主要做了这么几件事情：  构造一个BeanFactory对象 解析配置类，得到BeanDefinitio">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring源码(七)-Spring之启动过程源码解析">
+<meta property="og:url" content="http://example.com/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E4%B8%83)-Spring%E4%B9%8B%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="推断构造方法流程图：https://www.processon.com/view/link/5f97bc717d9c0806f291d7eb  前言通常，我们说的Spring启动，就是构造ApplicationContext对象以及调用refresh()方法的过程。  首先，Spring启动过程主要做了这么几件事情：  构造一个BeanFactory对象 解析配置类，得到BeanDefinitio">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/spring-%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2024-03-05T14:49:00.000Z">
+<meta property="article:modified_time" content="2024-03-07T15:21:33.859Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/spring-%E5%B0%81%E9%9D%A2.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E4%B8%83)-Spring%E4%B9%8B%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Spring源码(七)-Spring之启动过程源码解析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-03-07 23:21:33'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">40</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Spring源码(七)-Spring之启动过程源码解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-03-05T14:49:00.000Z" title="发表于 2024-03-05 22:49:00">2024-03-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-03-07T15:21:33.859Z" title="更新于 2024-03-07 23:21:33">2024-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/">Java后端</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/Spring/">Spring</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Spring源码(七)-Spring之启动过程源码解析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><p>推断构造方法流程图：<a target="_blank" rel="noopener" href="https://www.processon.com/view/link/5f97bc717d9c0806f291d7eb">https://www.processon.com/view/link/5f97bc717d9c0806f291d7eb</a> </p>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>通常，我们说的Spring启动，就是构造ApplicationContext对象以及调用refresh()方法的过程。 </p>
+<p>首先，Spring启动过程主要做了这么几件事情：</p>
+<ol>
+<li>构造一个BeanFactory对象</li>
+<li>解析配置类，得到BeanDefinition，并注册到BeanFactory中<ol>
+<li>解析@ComponentScan，此时就会完成扫描</li>
+<li>解析@Import</li>
+<li>解析@Bean</li>
+<li>…</li>
+</ol>
+</li>
+<li>因为ApplicationContext还支持国际化，所以还需要初始化MessageSource对象</li>
+<li>因为ApplicationContext还支持事件机制，所以还需要初始化ApplicationEventMulticaster对象</li>
+<li>把用户定义的ApplicationListener对象添加到ApplicationContext中，等Spring启动完了就要发布事件了</li>
+<li>创建<strong>非懒加载的单例</strong>Bean对象，并存在BeanFactory的单例池中。</li>
+<li>调用Lifecycle Bean的start()方法</li>
+<li>发布<strong>ContextRefreshedEvent</strong>事件</li>
+</ol>
+<p>由于Spring启动过程中要创建非懒加载的单例Bean对象，那么就需要用到BeanPostProcessor，所以Spring在启动过程中就需要做两件事：</p>
+<ol>
+<li>生成默认的BeanPostProcessor对象，并添加到BeanFactory中<ol>
+<li>AutowiredAnnotationBeanPostProcessor：处理@Autowired、@Value</li>
+<li>CommonAnnotationBeanPostProcessor：处理@Resource、@PostConstruct、@PreDestroy</li>
+<li>ApplicationContextAwareProcessor：处理ApplicationContextAware等回调</li>
+</ol>
+</li>
+<li>找到外部用户所定义的BeanPostProcessor对象（类型为BeanPostProcessor的Bean对象），并添加到BeanFactory中</li>
+</ol>
+<h2 id="BeanFactoryPostProcessor"><a href="#BeanFactoryPostProcessor" class="headerlink" title="BeanFactoryPostProcessor"></a>BeanFactoryPostProcessor</h2><p>BeanPostProcessor表示Bean的后置处理器，是用来对Bean进行加工的，类似的，BeanFactoryPostProcessor理解为BeanFactory的后置处理器，用来用对BeanFactory进行加工的。 </p>
+<p>Spring支持用户定义BeanFactoryPostProcessor的实现类Bean，来对BeanFactory进行加工，比如： </p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuBeanFactoryPostProcessor</span> <span class="keyword">implements</span> <span class="title class_">BeanFactoryPostProcessor</span> {</span><br><span class="line"></span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postProcessBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> <span class="keyword">throws</span> BeansException {</span><br><span class="line">  <span class="type">BeanDefinition</span> <span class="variable">beanDefinition</span> <span class="operator">=</span> beanFactory.getBeanDefinition(<span class="string">"userService"</span>);</span><br><span class="line">  beanDefinition.setAutowireCandidate(<span class="literal">false</span>);</span><br><span class="line"> }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>以上代码，就利用了BeanFactoryPostProcessor来拿到BeanFactory，然后获取BeanFactory内的某个BeanDefinition对象并进行修改，注意这一步是发生在Spring启动时，创建单例Bean之前的，所以此时对BeanDefinition就行修改是会生效的。</p>
+<p>注意：在ApplicationContext内部有一个核心的DefaultListableBeanFactory，它实现了ConfigurableListableBeanFactory和BeanDefinitionRegistry接口，所以ApplicationContext和DefaultListableBeanFactory是可以注册BeanDefinition的，但是ConfigurableListableBeanFactory是不能注册BeanDefinition的，只能获取BeanDefinition，然后做修改。 </p>
+<p>所以Spring还提供了一个BeanFactoryPostProcessor的子接口：<strong>BeanDefinitionRegistryPostProcessor</strong> </p>
+<h2 id="BeanDefinitionRegistryPostProcessor"><a href="#BeanDefinitionRegistryPostProcessor" class="headerlink" title="BeanDefinitionRegistryPostProcessor"></a>BeanDefinitionRegistryPostProcessor</h2><figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">BeanDefinitionRegistryPostProcessor</span> <span class="keyword">extends</span> <span class="title class_">BeanFactoryPostProcessor</span> {</span><br><span class="line"></span><br><span class="line"> <span class="keyword">void</span> <span class="title function_">postProcessBeanDefinitionRegistry</span><span class="params">(BeanDefinitionRegistry registry)</span> <span class="keyword">throws</span> BeansException;</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>我们可以看到BeanDefinitionRegistryPostProcessor继承了BeanFactoryPostProcessor接口，并新增了一个方法，注意方法的参数为BeanDefinitionRegistry，所以如果我们提供一个类来实现BeanDefinitionRegistryPostProcessor，那么在postProcessBeanDefinitionRegistry()方法中就可以注册BeanDefinition了。比如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuBeanDefinitionRegistryPostProcessor</span> <span class="keyword">implements</span> <span class="title class_">BeanDefinitionRegistryPostProcessor</span> {</span><br><span class="line"></span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postProcessBeanDefinitionRegistry</span><span class="params">(BeanDefinitionRegistry registry)</span> <span class="keyword">throws</span> BeansException {</span><br><span class="line">  <span class="type">AbstractBeanDefinition</span> <span class="variable">beanDefinition</span> <span class="operator">=</span> BeanDefinitionBuilder.genericBeanDefinition().getBeanDefinition();</span><br><span class="line">  beanDefinition.setBeanClass(User.class);</span><br><span class="line">  registry.registerBeanDefinition(<span class="string">"user"</span>, beanDefinition);</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postProcessBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> <span class="keyword">throws</span> BeansException {</span><br><span class="line">  <span class="type">BeanDefinition</span> <span class="variable">beanDefinition</span> <span class="operator">=</span> beanFactory.getBeanDefinition(<span class="string">"userService"</span>);</span><br><span class="line">  beanDefinition.setAutowireCandidate(<span class="literal">false</span>);</span><br><span class="line"> }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="如何理解refresh-？"><a href="#如何理解refresh-？" class="headerlink" title="如何理解refresh()？"></a>如何理解refresh()？</h2><figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Load or refresh the persistent representation of the configuration,</span></span><br><span class="line"><span class="comment">  * which might an XML file, properties file, or relational database schema.</span></span><br><span class="line"><span class="comment">  * &lt;p&gt;As this is a startup method, it should destroy already created singletons</span></span><br><span class="line"><span class="comment">  * if it fails, to avoid dangling resources. In other words, after invocation</span></span><br><span class="line"><span class="comment">  * of that method, either all or no singletons at all should be instantiated.</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@throws</span> BeansException if the bean factory could not be initialized</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@throws</span> IllegalStateException if already initialized and multiple refresh</span></span><br><span class="line"><span class="comment">  * attempts are not supported</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">()</span> <span class="keyword">throws</span> BeansException, IllegalStateException;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这是ConfigurableApplicationContext接口上refresh()方法的注释，意思是：加载或刷新持久化的配置，可能是XML文件、属性文件或关系数据库中存储的。由于这是一个启动方法，如果失败，它应该销毁已经创建的单例，以避免暂用资源。换句话说，在调用该方法之后，应该实例化所有的单例，或者根本不实例化单例 。 </p>
+<p>有个理念需要注意：<strong>ApplicationContext关闭之后不代表JVM也关闭了，ApplicationContext是属于JVM的，说白了ApplicationContext也是JVM中的一个对象。</strong><br><strong>​</strong></p>
+<p>在Spring的设计中，也提供可以刷新的ApplicationContext和不可以刷新的ApplicationContext。比如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AbstractRefreshableApplicationContext <span class="keyword">extends</span> <span class="title class_">AbstractApplicationContext</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p> 就是可以刷新的 </p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GenericApplicationContext <span class="keyword">extends</span> <span class="title class_">AbstractApplicationContext</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p> 就是不可以刷新的。 </p>
+<p>AnnotationConfigApplicationContext继承的是GenericApplicationContext，所以它是不能刷新的。<br>AnnotationConfigWebApplicationContext继承的是AbstractRefreshableWebApplicationContext，所以它是可以刷的。</p>
+<p>上面说的<strong>不能刷新是指不能重复刷新，只能调用一次refresh方法，第二次时会报错。</strong></p>
+<h2 id="refresh-底层原理流程"><a href="#refresh-底层原理流程" class="headerlink" title="refresh()底层原理流程"></a>refresh()底层原理流程</h2><p>底层原理流程图：<a target="_blank" rel="noopener" href="https://www.processon.com/view/link/5f60a7d71e08531edf26a919">https://www.processon.com/view/link/5f60a7d71e08531edf26a919</a></p>
+<p>下面以AnnotationConfigApplicationContext为例子，来介绍refresh的底层原理。</p>
+<ol>
+<li><p>在调用AnnotationConfigApplicationContext的构造方法之前，会调用父类GenericApplicationContext的无参构造方法，会构造一个BeanFactory，为<strong>DefaultListableBeanFactory</strong>。</p>
+</li>
+<li><p>构造AnnotatedBeanDefinitionReader（</p>
+<p>主要作用添加一些基础的PostProcessor，同时可以通过reader进行BeanDefinition的注册</p>
+<p>），同时对BeanFactory进行设置和添加</p>
+<p>PostProcessor</p>
+<p>（后置处理器）</p>
+<ol>
+<li>设置dependencyComparator：AnnotationAwareOrderComparator，它是一个Comparator，是用来进行排序的，会获取某个对象上的<strong>Order注解</strong>或者通过实现<strong>Ordered接口</strong>所定义的值进行排序，在日常开发中可以利用这个类来进行排序。</li>
+<li>设置autowireCandidateResolver：ContextAnnotationAutowireCandidateResolver，用来解析某个Bean能不能进行自动注入，比如某个Bean的autowireCandidate属性是否等于true</li>
+<li>向BeanFactory中添加<strong>ConfigurationClassPostProcessor</strong>对应的BeanDefinition，它是一个BeanDefinitionRegistryPostProcessor，并且实现了PriorityOrdered接口</li>
+<li>向BeanFactory中添加<strong>AutowiredAnnotationBeanPostProcessor</strong>对应的BeanDefinition，它是一个InstantiationAwareBeanPostProcessorAdapter，MergedBeanDefinitionPostProcessor</li>
+<li>向BeanFactory中添加CommonAnnotationBeanPostProcessor对应的BeanDefinition，它是一个InstantiationAwareBeanPostProcessor，InitDestroyAnnotationBeanPostProcessor</li>
+<li>向BeanFactory中添加EventListenerMethodProcessor对应的BeanDefinition，它是一个BeanFactoryPostProcessor，SmartInitializingSingleton</li>
+<li>向BeanFactory中添加DefaultEventListenerFactory对应的BeanDefinition，它是一个EventListenerFactory</li>
+</ol>
+</li>
+<li><p>构造ClassPathBeanDefinitionScanner（</p>
+<p>主要作用可以用来扫描得到并注册BeanDefinition</p>
+<p>），同时进行设置：</p>
+<ol>
+<li>设置<strong>this.includeFilters = AnnotationTypeFilter(Component.class)</strong></li>
+<li>设置environment</li>
+<li>设置resourceLoader</li>
+</ol>
+</li>
+<li><p>利用reader注册AppConfig为BeanDefinition，类型为AnnotatedGenericBeanDefinition</p>
+</li>
+<li><p><strong>接下来就是调用refresh方法</strong></p>
+</li>
+<li><p>prepareRefresh()：</p>
+<ol>
+<li>记录启动时间</li>
+<li>可以允许子容器设置一些内容到Environment中</li>
+<li>验证Environment中是否包括了必须要有的属性</li>
+</ol>
+</li>
+<li><p>obtainFreshBeanFactory()：进行BeanFactory的refresh，在这里会去调用子类的refreshBeanFactory方法，具体子类是怎么刷新的得看子类，然后再调用子类的getBeanFactory方法，重新得到一个BeanFactory</p>
+</li>
+<li><p>prepareBeanFactory(beanFactory)：</p>
+<ol>
+<li><p>设置beanFactory的类加载器</p>
+</li>
+<li><p>设置表达式解析器：StandardBeanExpressionResolver，用来解析Spring中的表达式</p>
+</li>
+<li><p>添加PropertyEditorRegistrar：ResourceEditorRegistrar，PropertyEditor类型转化器注册器，用来注册一些默认的PropertyEditor</p>
+</li>
+<li><p>添加一个Bean的后置处理器：ApplicationContextAwareProcessor，是一个BeanPostProcessor，用来执行EnvironmentAware、ApplicationEventPublisherAware等回调方法</p>
+</li>
+<li><p>添加</p>
+<p>ignoredDependencyInterface：可以向这个属性中添加一些接口，如果某个类实现了这个接口，并且这个类中的某些set方法在接口中也存在，那么这个set方法在自动注入的时候是不会执行的，比如EnvironmentAware这个接口，如果某个类实现了这个接口，那么就必须实现它的setEnvironment方法，而这是一个set方法，和Spring中的autowire是冲突的，那么Spring在自动注入时是不会调用setEnvironment方法的，而是等到回调Aware接口时再来调用（注意，这个功能仅限于xml的autowire，@Autowired注解是忽略这个属性的）</p>
+<ol>
+<li>EnvironmentAware</li>
+<li>EmbeddedValueResolverAware</li>
+<li>ResourceLoaderAware</li>
+<li>ApplicationEventPublisherAware</li>
+<li>MessageSourceAware</li>
+<li>ApplicationContextAware</li>
+<li>另外其实在构造BeanFactory的时候就已经提前添加了另外三个：</li>
+<li>BeanNameAware</li>
+<li>BeanClassLoaderAware</li>
+<li>BeanFactoryAware</li>
+</ol>
+</li>
+<li><p>添加resolvableDependencies：在byType进行依赖注入时，会先从这个属性中根据类型找bean</p>
+<ol>
+<li>BeanFactory.class：当前BeanFactory对象</li>
+<li>ResourceLoader.class：当前ApplicationContext对象</li>
+<li>ApplicationEventPublisher.class：当前ApplicationContext对象</li>
+<li>ApplicationContext.class：当前ApplicationContext对象</li>
+</ol>
+</li>
+<li><p>添加一个Bean的后置处理器：ApplicationListenerDetector，是一个BeanPostProcessor，用来判断某个Bean是不是ApplicationListener，如果是则把这个Bean添加到ApplicationContext中去，注意一个ApplicationListener只能是单例的</p>
+</li>
+<li><p>添加一个Bean的后置处理器：LoadTimeWeaverAwareProcessor，是一个BeanPostProcessor，用来判断某个Bean是不是实现了LoadTimeWeaverAware接口，如果实现了则把ApplicationContext中的loadTimeWeaver回调setLoadTimeWeaver方法设置给该Bean。</p>
+</li>
+<li><p>添加一些单例bean到单例池：</p>
+<ol>
+<li>“environment”：Environment对象</li>
+<li>“systemProperties”：System.getProperties()返回的Map对象</li>
+<li>“systemEnvironment”：System.getenv()返回的Map对象</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>postProcessBeanFactory(beanFactory) ： 提供给AbstractApplicationContext的子类进行扩展，具体的子类，可以继续向BeanFactory中再添加一些东西</p>
+</li>
+<li><p>invokeBeanFactoryPostProcessors(beanFactory)：</p>
+<p>执行BeanFactoryPostProcessor</p>
+<ol>
+<li>此时在BeanFactory中会存在一个BeanFactoryPostProcessor：<strong>ConfigurationClassPostProcessor</strong>，它也是一个<strong>BeanDefinitionRegistryPostProcessor</strong></li>
+<li><strong>第一阶段</strong></li>
+<li>从BeanFactory中找到类型为BeanDefinitionRegistryPostProcessor的beanName，也就是<strong>ConfigurationClassPostProcessor</strong>， 然后调用BeanFactory的getBean方法得到实例对象</li>
+<li>执行**ConfigurationClassPostProcessor的postProcessBeanDefinitionRegistry()**方法:<ol>
+<li>解析AppConfig类</li>
+<li>扫描得到BeanDefinition并注册</li>
+<li>解析@Import，@Bean等注解得到BeanDefinition并注册</li>
+<li>详细的看另外的笔记，专门分析了<strong>ConfigurationClassPostProcessor是如何工作的</strong></li>
+<li>在这里，我们只需要知道在这一步会去得到BeanDefinition，而这些BeanDefinition中可能存在BeanFactoryPostProcessor和BeanDefinitionRegistryPostProcessor，所以执行完ConfigurationClassPostProcessor的postProcessBeanDefinitionRegistry()方法后，还需要继续执行其他BeanDefinitionRegistryPostProcessor的postProcessBeanDefinitionRegistry()方法</li>
+</ol>
+</li>
+<li>执行其他BeanDefinitionRegistryPostProcessor的**postProcessBeanDefinitionRegistry()**方法</li>
+<li>执行所有BeanDefinitionRegistryPostProcessor的**postProcessBeanFactory()**方法</li>
+<li><strong>第二阶段</strong></li>
+<li>从BeanFactory中找到类型为BeanFactoryPostProcessor的beanName，而这些BeanFactoryPostProcessor包括了上面的BeanDefinitionRegistryPostProcessor</li>
+<li>执行还没有执行过的BeanFactoryPostProcessor的**postProcessBeanFactory()**方法</li>
+</ol>
+</li>
+<li><p>到此，所有的BeanFactoryPostProcessor的逻辑都执行完了，主要做的事情就是得到BeanDefinition并注册到BeanFactory中</p>
+</li>
+<li><p>registerBeanPostProcessors(beanFactory)：因为上面的步骤完成了扫描，这个过程中程序员可能自己定义了一些BeanPostProcessor，在这一步就会把BeanFactory中所有的BeanPostProcessor找出来并实例化得到一个对象，并添加到BeanFactory中去（属性<strong>beanPostProcessors</strong>），最后再重新添加一个ApplicationListenerDetector对象（之前其实就添加了过，这里是为了把ApplicationListenerDetector移动到最后）</p>
+</li>
+<li><p>initMessageSource()：如果BeanFactory中存在一个叫做”<strong>messageSource</strong>“的BeanDefinition，那么就会把这个Bean对象创建出来并赋值给ApplicationContext的messageSource属性，让ApplicationContext拥有<strong>国际化</strong>的功能</p>
+</li>
+<li><p>initApplicationEventMulticaster()：如果BeanFactory中存在一个叫做”<strong>applicationEventMulticaster</strong>“的BeanDefinition，那么就会把这个Bean对象创建出来并赋值给ApplicationContext的applicationEventMulticaster属性，让ApplicationContext拥有<strong>事件发布</strong>的功能</p>
+</li>
+<li><p>onRefresh()：提供给AbstractApplicationContext的子类进行扩展，没用</p>
+</li>
+<li><p>registerListeners()：从BeanFactory中获取ApplicationListener类型的beanName，然后添加到ApplicationContext中的事件广播器<strong>applicationEventMulticaster</strong>中去，到这一步因为FactoryBean还没有调用getObject()方法生成Bean对象，所以这里要在根据类型找一下ApplicationListener，记录一下对应的beanName</p>
+</li>
+<li><p>finishBeanFactoryInitialization(beanFactory)：完成BeanFactory的初始化，主要就是<strong>实例化非懒加载的单例Bean</strong>，单独的笔记去讲。</p>
+</li>
+<li><p>finishRefresh()：BeanFactory的初始化完后，就到了Spring启动的最后一步了</p>
+</li>
+<li><p>设置ApplicationContext的lifecycleProcessor，默认情况下设置的是DefaultLifecycleProcessor</p>
+</li>
+<li><p>调用lifecycleProcessor的onRefresh()方法，如果是DefaultLifecycleProcessor，那么会获取所有类型为Lifecycle的Bean对象，然后调用它的start()方法，这就是ApplicationContext的生命周期扩展机制</p>
+</li>
+<li><p>发布<strong>ContextRefreshedEvent</strong>事件</p>
+</li>
+</ol>
+<h2 id="执行BeanFactoryPostProcessor"><a href="#执行BeanFactoryPostProcessor" class="headerlink" title="执行BeanFactoryPostProcessor"></a>执行BeanFactoryPostProcessor</h2><ol>
+<li>执行通过ApplicationContext添加进来的BeanDefinitionRegistryPostProcessor的postProcessBeanDefinitionRegistry()方法</li>
+<li>执行BeanFactory中实现了PriorityOrdered接口的BeanDefinitionRegistryPostProcessor的postProcessBeanDefinitionRegistry()方法</li>
+<li>执行BeanFactory中实现了Ordered接口的BeanDefinitionRegistryPostProcessor的postProcessBeanDefinitionRegistry()方法</li>
+<li>执行BeanFactory中其他的BeanDefinitionRegistryPostProcessor的postProcessBeanDefinitionRegistry()方法</li>
+<li>执行上面所有的BeanDefinitionRegistryPostProcessor的postProcessBeanFactory()方法</li>
+<li>执行通过ApplicationContext添加进来的BeanFactoryPostProcessor的postProcessBeanFactory()方法</li>
+<li>执行BeanFactory中实现了PriorityOrdered接口的BeanFactoryPostProcessor的postProcessBeanFactory()方法</li>
+<li>执行BeanFactory中实现了Ordered接口的BeanFactoryPostProcessor的postProcessBeanFactory()方法</li>
+<li>执行BeanFactory中其他的BeanFactoryPostProcessor的postProcessBeanFactory()方法</li>
+</ol>
+<h2 id="Lifecycle的使用"><a href="#Lifecycle的使用" class="headerlink" title="Lifecycle的使用"></a>Lifecycle的使用</h2><p>Lifecycle表示的是ApplicationContext的生命周期，可以定义一个SmartLifecycle来监听ApplicationContext的启动和关闭：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuLifecycle</span> <span class="keyword">implements</span> <span class="title class_">SmartLifecycle</span> {</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">isRunning</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> {</span><br><span class="line">  System.out.println(<span class="string">"启动"</span>);</span><br><span class="line">  isRunning = <span class="literal">true</span>;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> {</span><br><span class="line">        <span class="comment">// 要触发stop()，要调用context.close()，或者注册关闭钩子（context.registerShutdownHook();）</span></span><br><span class="line">  System.out.println(<span class="string">"停止"</span>);</span><br><span class="line">  isRunning = <span class="literal">false</span>;</span><br><span class="line"> }</span><br><span class="line"></span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isRunning</span><span class="params">()</span> {</span><br><span class="line">  <span class="keyword">return</span> isRunning;</span><br><span class="line"> }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E4%B8%83)-Spring%E4%B9%8B%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">http://example.com/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E4%B8%83)-Spring%E4%B9%8B%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Spring/">Spring</a></div><div class="post_share"><div class="social-share" data-image="/../img/spring-%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%85%AB)-Spring%E4%B9%8B%E9%85%8D%E7%BD%AE%E7%B1%BB%E8%A7%A3%E6%9E%90%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(八)-Spring之配置类解析源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Spring源码(八)-Spring之配置类解析源码解析</div></div></a></div><div class="next-post pull-right"><a href="/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E5%85%AD)-Spring%E4%B9%8B%E6%8E%A8%E6%96%AD%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95/" title="Spring源码(六)-Spring之推断构造方法"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Spring源码(六)-Spring之推断构造方法</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-09</div><div class="title">Spring源码(九)-Spring之整合MyBatis底层源码解析</div></div></a></div><div><a href="/2023/09/04/Spring%E6%BA%90%E7%A0%81(%E4%BA%8C)-%E6%89%8B%E5%86%99%E6%A8%A1%E6%8B%9FSpring%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" title="Spring源码(二)-手写模拟Spring底层原理"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-04</div><div class="title">Spring源码(二)-手写模拟Spring底层原理</div></div></a></div><div><a href="/2024/03/04/Spring%E6%BA%90%E7%A0%81(%E4%BA%94)-Spring%E4%B9%8B%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81/" title="Spring源码(五)-Spring之循环依赖底层源码"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-04</div><div class="title">Spring源码(五)-Spring之循环依赖底层源码</div></div></a></div><div><a href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%85%AB)-Spring%E4%B9%8B%E9%85%8D%E7%BD%AE%E7%B1%BB%E8%A7%A3%E6%9E%90%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(八)-Spring之配置类解析源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-09</div><div class="title">Spring源码(八)-Spring之配置类解析源码解析</div></div></a></div><div><a href="/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E5%85%AD)-Spring%E4%B9%8B%E6%8E%A8%E6%96%AD%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95/" title="Spring源码(六)-Spring之推断构造方法"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-05</div><div class="title">Spring源码(六)-Spring之推断构造方法</div></div></a></div><div><a href="/2023/10/19/Spring%E6%BA%90%E7%A0%81(%E5%9B%9B)-Spring%E4%B9%8B%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(四)-Spring之依赖注入源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-19</div><div class="title">Spring源码(四)-Spring之依赖注入源码解析</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">40</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">愿内心深处的懦弱 不再将我吞噬</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#BeanFactoryPostProcessor"><span class="toc-number">1.1.</span> <span class="toc-text">BeanFactoryPostProcessor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BeanDefinitionRegistryPostProcessor"><span class="toc-number">1.2.</span> <span class="toc-text">BeanDefinitionRegistryPostProcessor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3refresh-%EF%BC%9F"><span class="toc-number">1.3.</span> <span class="toc-text">如何理解refresh()？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#refresh-%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">1.4.</span> <span class="toc-text">refresh()底层原理流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A7%E8%A1%8CBeanFactoryPostProcessor"><span class="toc-number">1.5.</span> <span class="toc-text">执行BeanFactoryPostProcessor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Lifecycle%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.6.</span> <span class="toc-text">Lifecycle的使用</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%8D%81)-Spring%E4%B9%8BAOP%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="无题">无题</a><time datetime="2024-03-09T11:04:32.345Z" title="发表于 2024-03-09 19:04:32">2024-03-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(九)-Spring之整合MyBatis底层源码解析"></a><div class="content"><a class="title" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析">Spring源码(九)-Spring之整合MyBatis底层源码解析</a><time datetime="2024-03-09T10:51:00.000Z" title="发表于 2024-03-09 18:51:00">2024-03-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%85%AB)-Spring%E4%B9%8B%E9%85%8D%E7%BD%AE%E7%B1%BB%E8%A7%A3%E6%9E%90%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(八)-Spring之配置类解析源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(八)-Spring之配置类解析源码解析"></a><div class="content"><a class="title" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%85%AB)-Spring%E4%B9%8B%E9%85%8D%E7%BD%AE%E7%B1%BB%E8%A7%A3%E6%9E%90%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(八)-Spring之配置类解析源码解析">Spring源码(八)-Spring之配置类解析源码解析</a><time datetime="2024-03-09T10:36:00.000Z" title="发表于 2024-03-09 18:36:00">2024-03-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E4%B8%83)-Spring%E4%B9%8B%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(七)-Spring之启动过程源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(七)-Spring之启动过程源码解析"></a><div class="content"><a class="title" href="/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E4%B8%83)-Spring%E4%B9%8B%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(七)-Spring之启动过程源码解析">Spring源码(七)-Spring之启动过程源码解析</a><time datetime="2024-03-05T14:49:00.000Z" title="发表于 2024-03-05 22:49:00">2024-03-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E5%85%AD)-Spring%E4%B9%8B%E6%8E%A8%E6%96%AD%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95/" title="Spring源码(六)-Spring之推断构造方法"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(六)-Spring之推断构造方法"></a><div class="content"><a class="title" href="/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E5%85%AD)-Spring%E4%B9%8B%E6%8E%A8%E6%96%AD%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95/" title="Spring源码(六)-Spring之推断构造方法">Spring源码(六)-Spring之推断构造方法</a><time datetime="2024-03-04T16:08:00.000Z" title="发表于 2024-03-05 00:08:00">2024-03-05</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 - 2024 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
