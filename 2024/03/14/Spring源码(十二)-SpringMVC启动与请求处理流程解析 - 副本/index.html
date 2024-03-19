@@ -1,0 +1,242 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Spring源码(十二)-SpringMVC启动与请求处理流程解析 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="SpringMVC的作用毋庸置疑，虽然我们现在都是用SpringBoot，但是SpringBoot中仍然是在使用SpringMVC来处理请求。 我们在使用SpringMVC时，传统的方式是通过定义web.xml，比如： 12345678910111213141516<web-app>    <servlet>        <servlet-name>app&amp;l">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring源码(十二)-SpringMVC启动与请求处理流程解析">
+<meta property="og:url" content="http://example.com/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="SpringMVC的作用毋庸置疑，虽然我们现在都是用SpringBoot，但是SpringBoot中仍然是在使用SpringMVC来处理请求。 我们在使用SpringMVC时，传统的方式是通过定义web.xml，比如： 12345678910111213141516<web-app>    <servlet>        <servlet-name>app&amp;l">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/spring-%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2024-03-14T15:05:00.000Z">
+<meta property="article:modified_time" content="2024-03-14T16:04:56.998Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/spring-%E5%B0%81%E9%9D%A2.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Spring源码(十二)-SpringMVC启动与请求处理流程解析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2024-03-15 00:04:56'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">43</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Spring源码(十二)-SpringMVC启动与请求处理流程解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-03-14T15:05:00.000Z" title="发表于 2024-03-14 23:05:00">2024-03-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-03-14T16:04:56.998Z" title="更新于 2024-03-15 00:04:56">2024-03-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/">Java后端</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/Spring/">Spring</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><p>SpringMVC的作用毋庸置疑，虽然我们现在都是用SpringBoot，但是SpringBoot中仍然是在使用SpringMVC来处理请求。</p>
+<p>我们在使用SpringMVC时，传统的方式是通过定义web.xml，比如：</p>
+<figure class="highlight xml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">web-app</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>app<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>org.springframework.web.servlet.DispatcherServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">init-param</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>contextConfigLocation<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>/WEB-INF/spring.xml<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">load-on-startup</span>&gt;</span>1<span class="tag">&lt;/<span class="name">load-on-startup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>app<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/app/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>我们只要定义这样的一个web.xml，然后启动Tomcat，那么我们就能正常使用SpringMVC了。</p>
+<p>SpringMVC中，最为核心的就是DispatcherServlet，在启动Tomcat的过程中：</p>
+<ol>
+<li>Tomcat会先创建DispatcherServlet对象</li>
+<li>然后调用DispatcherServlet对象的init()</li>
+</ol>
+<p>而在init()方法中，会创建一个Spring容器，并且添加一个ContextRefreshListener监听器，该监听器会监听ContextRefreshedEvent事件（Spring容器启动完成后就会发布这个事件），也就是说Spring容器启动完成后，就会执行ContextRefreshListener中的onApplicationEvent()方法，从而最终会执行DispatcherServlet中的initStrategies()，这个方法中会初始化更多内容：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">initStrategies</span><span class="params">(ApplicationContext context)</span> {</span><br><span class="line">    initMultipartResolver(context);</span><br><span class="line">    initLocaleResolver(context);</span><br><span class="line">    initThemeResolver(context);</span><br><span class="line"></span><br><span class="line">    initHandlerMappings(context);</span><br><span class="line">    initHandlerAdapters(context);</span><br><span class="line"></span><br><span class="line">    initHandlerExceptionResolvers(context);</span><br><span class="line">    initRequestToViewNameTranslator(context);</span><br><span class="line">    initViewResolvers(context);</span><br><span class="line">    initFlashMapManager(context);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>其中最为核心的就是<strong>HandlerMapping</strong>和<strong>HandlerAdapter</strong>。</p>
+<p><strong>什么是Handler？</strong></p>
+<p>Handler表示请求处理器，在SpringMVC中有四种Handler：</p>
+<ol>
+<li>实现了Controller接口的Bean对象</li>
+<li>实现了HttpRequestHandler接口的Bean对象</li>
+<li>添加了@RequestMapping注解的方法</li>
+<li>一个HandlerFunction对象</li>
+</ol>
+<p>比如实现了Controller接口的Bean对象：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component("/test")</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuBeanNameController</span> <span class="keyword">implements</span> <span class="title class_">Controller</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> ModelAndView <span class="title function_">handleRequest</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        System.out.println(<span class="string">"zhouyu"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ModelAndView</span>();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>实现了HttpRequestHandler接口的Bean对象：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component("/test")</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuBeanNameController</span> <span class="keyword">implements</span> <span class="title class_">HttpRequestHandler</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleRequest</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> ServletException, IOException {</span><br><span class="line">        System.out.println(<span class="string">"zhouyu"</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>添加了@RequestMapping注解的方法：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuController</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> ZhouyuService zhouyuService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(method = RequestMethod.GET, path = "/test")</span></span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(String username)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>一个HandlerFunction对象（以下代码中有两个）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ComponentScan("com.zhouyu")</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppConfig</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RouterFunction&lt;ServerResponse&gt; <span class="title function_">person</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> route()</span><br><span class="line">                .GET(<span class="string">"/app/person"</span>, request -&gt; ServerResponse.status(HttpStatus.OK).body(<span class="string">"Hello GET"</span>))</span><br><span class="line">                .POST(<span class="string">"/app/person"</span>, request -&gt; ServerResponse.status(HttpStatus.OK).body(<span class="string">"Hello POST"</span>))</span><br><span class="line">                .build();</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<p><strong>什么是HandlerMapping?</strong></p>
+<p>HandlerMapping负责去寻找Handler，并且保存路径和Handler之间的映射关系。</p>
+<p>因为有不同类型的Handler，所以在SpringMVC中会由不同的HandlerMapping来负责寻找Handler，比如：</p>
+<ol>
+<li>BeanNameUrlHandlerMapping：负责Controller接口和HttpRequestHandler接口</li>
+<li>RequestMappingHandlerMapping：负责@RequestMapping的方法</li>
+<li>RouterFunctionMapping：负责RouterFunction以及其中的HandlerFunction</li>
+</ol>
+<p>BeanNameUrlHandlerMapping的寻找流程：</p>
+<ol>
+<li>找出Spring容器中所有的beanName</li>
+<li>判断beanName是不是以“/”开头</li>
+<li>如果是，则把它当作一个Handler，并把beanName作为key，bean对象作为value存入<strong>handlerMap</strong>中</li>
+<li>handlerMap就是一个Map</li>
+</ol>
+<p>RequestMappingHandlerMapping的寻找流程：</p>
+<ol>
+<li>找出Spring容器中所有beanType</li>
+<li>判断beanType是不是有@Controller注解，或者是不是有@RequestMapping注解</li>
+<li>判断成功则继续找beanType中加了@RequestMapping的Method</li>
+<li>并解析@RequestMapping中的内容，比如method、path，封装为一个RequestMappingInfo对象</li>
+<li>最后把RequestMappingInfo对象做为key，Method对象封装为HandlerMethod对象后作为value，存入<strong>registry</strong>中</li>
+<li>registry就是一个Map</li>
+</ol>
+<p>RouterFunctionMapping的寻找流程会有些区别，但是大体是差不多的，相当于是一个path对应一个HandlerFunction。</p>
+<p>各个HandlerMapping除开负责寻找Handler并记录映射关系之外，自然还需要根据请求路径找到对应的Handler，在源码中这三个HandlerMapping有一个共同的父类AbstractHandlerMapping</p>
+<p> ![截图 (9)](../img/截图 (9).png)</p>
+<p>AbstractHandlerMapping实现了HandlerMapping接口，并实现了getHandler(HttpServletRequest request)方法。</p>
+<p>AbstractHandlerMapping会负责调用子类的getHandlerInternal(HttpServletRequest request)方法从而找到请求对应的Handler，然后AbstractHandlerMapping负责将Handler和应用中所配置的HandlerInterceptor整合成为一个HandlerExecutionChain对象。</p>
+<p>所以寻找Handler的源码实现在各个HandlerMapping子类中的getHandlerInternal()中，根据请求路径找到Handler的过程并不复杂，因为路径和Handler的映射关系已经存在Map中了。</p>
+<p>比较困难的点在于，当DispatcherServlet接收到一个请求时，该利用哪个HandlerMapping来寻找Handler呢？看源码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> HandlerExecutionChain <span class="title function_">getHandler</span><span class="params">(HttpServletRequest request)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.handlerMappings != <span class="literal">null</span>) {</span><br><span class="line">        <span class="keyword">for</span> (HandlerMapping mapping : <span class="built_in">this</span>.handlerMappings) {</span><br><span class="line">            <span class="type">HandlerExecutionChain</span> <span class="variable">handler</span> <span class="operator">=</span> mapping.getHandler(request);</span><br><span class="line">            <span class="keyword">if</span> (handler != <span class="literal">null</span>) {</span><br><span class="line">                <span class="keyword">return</span> handler;</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>很简单，就是遍历，找到就返回，默认顺序为：</p>
+<p>![截图 (10)](../img/截图 (10).png)</p>
+<p>所以BeanNameUrlHandlerMapping的优先级最高，比如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component("/test")</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuBeanNameController</span> <span class="keyword">implements</span> <span class="title class_">Controller</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> ModelAndView <span class="title function_">handleRequest</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        System.out.println(<span class="string">"Hello zhouyu"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ModelAndView</span>();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(method = RequestMethod.GET, path = "/test")</span></span><br><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"Hi zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>请求路径都是/test，但是最终是Controller接口的会生效。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/">http://example.com/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Spring/">Spring</a></div><div class="post_share"><div class="social-share" data-image="/../img/spring-%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Spring源码(十二)-SpringMVC启动与请求处理流程解析</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-09</div><div class="title">Spring源码(九)-Spring之整合MyBatis底层源码解析</div></div></a></div><div><a href="/2023/09/04/Spring%E6%BA%90%E7%A0%81(%E4%BA%8C)-%E6%89%8B%E5%86%99%E6%A8%A1%E6%8B%9FSpring%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" title="Spring源码(二)-手写模拟Spring底层原理"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-04</div><div class="title">Spring源码(二)-手写模拟Spring底层原理</div></div></a></div><div><a href="/2024/03/04/Spring%E6%BA%90%E7%A0%81(%E4%BA%94)-Spring%E4%B9%8B%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81/" title="Spring源码(五)-Spring之循环依赖底层源码"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-04</div><div class="title">Spring源码(五)-Spring之循环依赖底层源码</div></div></a></div><div><a href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%85%AB)-Spring%E4%B9%8B%E9%85%8D%E7%BD%AE%E7%B1%BB%E8%A7%A3%E6%9E%90%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(八)-Spring之配置类解析源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-09</div><div class="title">Spring源码(八)-Spring之配置类解析源码解析</div></div></a></div><div><a href="/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E5%85%AD)-Spring%E4%B9%8B%E6%8E%A8%E6%96%AD%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95/" title="Spring源码(六)-Spring之推断构造方法"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-05</div><div class="title">Spring源码(六)-Spring之推断构造方法</div></div></a></div><div><a href="/2024/03/12/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%B8%80)-Spring%E4%B9%8B%E4%BA%8B%E5%8A%A1%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十一)-Spring之事务底层源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-12</div><div class="title">Spring源码(十一)-Spring之事务底层源码解析</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">43</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">愿内心深处的懦弱 不再将我吞噬</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(十二)-SpringMVC启动与请求处理流程解析"></a><div class="content"><a class="title" href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析">Spring源码(十二)-SpringMVC启动与请求处理流程解析</a><time datetime="2024-03-14T15:05:00.000Z" title="发表于 2024-03-14 23:05:00">2024-03-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(十二)-SpringMVC启动与请求处理流程解析"></a><div class="content"><a class="title" href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析">Spring源码(十二)-SpringMVC启动与请求处理流程解析</a><time datetime="2024-03-14T15:05:00.000Z" title="发表于 2024-03-14 23:05:00">2024-03-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%B8%80)-Spring%E4%B9%8B%E4%BA%8B%E5%8A%A1%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十一)-Spring之事务底层源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(十一)-Spring之事务底层源码解析"></a><div class="content"><a class="title" href="/2024/03/12/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%B8%80)-Spring%E4%B9%8B%E4%BA%8B%E5%8A%A1%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十一)-Spring之事务底层源码解析">Spring源码(十一)-Spring之事务底层源码解析</a><time datetime="2024-03-12T15:49:00.000Z" title="发表于 2024-03-12 23:49:00">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%8D%81)-Spring%E4%B9%8BAOP%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十)-Spring之AOP底层源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(十)-Spring之AOP底层源码解析"></a><div class="content"><a class="title" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%8D%81)-Spring%E4%B9%8BAOP%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十)-Spring之AOP底层源码解析">Spring源码(十)-Spring之AOP底层源码解析</a><time datetime="2024-03-09T14:39:00.000Z" title="发表于 2024-03-09 22:39:00">2024-03-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(九)-Spring之整合MyBatis底层源码解析"></a><div class="content"><a class="title" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析">Spring源码(九)-Spring之整合MyBatis底层源码解析</a><time datetime="2024-03-09T10:51:00.000Z" title="发表于 2024-03-09 18:51:00">2024-03-09</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 - 2024 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

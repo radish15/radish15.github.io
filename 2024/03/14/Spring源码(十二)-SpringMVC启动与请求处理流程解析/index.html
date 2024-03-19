@@ -1,0 +1,372 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Spring源码(十二)-SpringMVC启动与请求处理流程解析 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="SpringMVC的作用毋庸置疑，虽然我们现在都是用SpringBoot，但是SpringBoot中仍然是在使用SpringMVC来处理请求。 我们在使用SpringMVC时，传统的方式是通过定义web.xml，比如： 12345678910111213141516<web-app>    <servlet>        <servlet-name>app&amp;l">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring源码(十二)-SpringMVC启动与请求处理流程解析">
+<meta property="og:url" content="http://example.com/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="SpringMVC的作用毋庸置疑，虽然我们现在都是用SpringBoot，但是SpringBoot中仍然是在使用SpringMVC来处理请求。 我们在使用SpringMVC时，传统的方式是通过定义web.xml，比如： 12345678910111213141516<web-app>    <servlet>        <servlet-name>app&amp;l">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/spring-%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2024-03-14T15:05:00.000Z">
+<meta property="article:modified_time" content="2024-03-19T16:50:10.264Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/spring-%E5%B0%81%E9%9D%A2.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Spring源码(十二)-SpringMVC启动与请求处理流程解析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2024-03-20 00:50:10'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">43</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Spring源码(十二)-SpringMVC启动与请求处理流程解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-03-14T15:05:00.000Z" title="发表于 2024-03-14 23:05:00">2024-03-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-03-19T16:50:10.264Z" title="更新于 2024-03-20 00:50:10">2024-03-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/">Java后端</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/Spring/">Spring</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><p>SpringMVC的作用毋庸置疑，虽然我们现在都是用SpringBoot，但是SpringBoot中仍然是在使用SpringMVC来处理请求。</p>
+<p>我们在使用SpringMVC时，传统的方式是通过定义web.xml，比如：</p>
+<figure class="highlight xml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">web-app</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>app<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>org.springframework.web.servlet.DispatcherServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">init-param</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>contextConfigLocation<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>/WEB-INF/spring.xml<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">load-on-startup</span>&gt;</span>1<span class="tag">&lt;/<span class="name">load-on-startup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>app<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/app/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>我们只要定义这样的一个web.xml，然后启动Tomcat，那么我们就能正常使用SpringMVC了。</p>
+<p>SpringMVC中，最为核心的就是DispatcherServlet，在启动Tomcat的过程中：</p>
+<ol>
+<li>Tomcat会先创建DispatcherServlet对象</li>
+<li>然后调用DispatcherServlet对象的init()</li>
+</ol>
+<p>而在init()方法中，会创建一个Spring容器，并且添加一个ContextRefreshListener监听器，该监听器会监听ContextRefreshedEvent事件（Spring容器启动完成后就会发布这个事件），也就是说Spring容器启动完成后，就会执行ContextRefreshListener中的onApplicationEvent()方法，从而最终会执行DispatcherServlet中的initStrategies()，这个方法中会初始化更多内容：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">initStrategies</span><span class="params">(ApplicationContext context)</span> {</span><br><span class="line">    initMultipartResolver(context);</span><br><span class="line">    initLocaleResolver(context);</span><br><span class="line">    initThemeResolver(context);</span><br><span class="line"></span><br><span class="line">    initHandlerMappings(context);</span><br><span class="line">    initHandlerAdapters(context);</span><br><span class="line"></span><br><span class="line">    initHandlerExceptionResolvers(context);</span><br><span class="line">    initRequestToViewNameTranslator(context);</span><br><span class="line">    initViewResolvers(context);</span><br><span class="line">    initFlashMapManager(context);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>其中最为核心的就是<strong>HandlerMapping</strong>和<strong>HandlerAdapter</strong>。</p>
+<p><strong>什么是Handler？</strong></p>
+<p>Handler表示请求处理器，在SpringMVC中有四种Handler：</p>
+<ol>
+<li>实现了Controller接口的Bean对象</li>
+<li>实现了HttpRequestHandler接口的Bean对象</li>
+<li>添加了@RequestMapping注解的方法</li>
+<li>一个HandlerFunction对象</li>
+</ol>
+<p>比如实现了Controller接口的Bean对象：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component("/test")</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuBeanNameController</span> <span class="keyword">implements</span> <span class="title class_">Controller</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> ModelAndView <span class="title function_">handleRequest</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        System.out.println(<span class="string">"zhouyu"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ModelAndView</span>();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>实现了HttpRequestHandler接口的Bean对象：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component("/test")</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuBeanNameController</span> <span class="keyword">implements</span> <span class="title class_">HttpRequestHandler</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleRequest</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> ServletException, IOException {</span><br><span class="line">        System.out.println(<span class="string">"zhouyu"</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>添加了@RequestMapping注解的方法：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuController</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> ZhouyuService zhouyuService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(method = RequestMethod.GET, path = "/test")</span></span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(String username)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>一个HandlerFunction对象（以下代码中有两个）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ComponentScan("com.zhouyu")</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppConfig</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RouterFunction&lt;ServerResponse&gt; <span class="title function_">person</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> route()</span><br><span class="line">                .GET(<span class="string">"/app/person"</span>, request -&gt; ServerResponse.status(HttpStatus.OK).body(<span class="string">"Hello GET"</span>))</span><br><span class="line">                .POST(<span class="string">"/app/person"</span>, request -&gt; ServerResponse.status(HttpStatus.OK).body(<span class="string">"Hello POST"</span>))</span><br><span class="line">                .build();</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<p><strong>什么是HandlerMapping?</strong></p>
+<p>HandlerMapping负责去寻找Handler，并且保存路径和Handler之间的映射关系。</p>
+<p>因为有不同类型的Handler，所以在SpringMVC中会由不同的HandlerMapping来负责寻找Handler，比如：</p>
+<ol>
+<li>BeanNameUrlHandlerMapping：负责Controller接口和HttpRequestHandler接口</li>
+<li>RequestMappingHandlerMapping：负责@RequestMapping的方法</li>
+<li>RouterFunctionMapping：负责RouterFunction以及其中的HandlerFunction</li>
+</ol>
+<p>BeanNameUrlHandlerMapping的寻找流程：</p>
+<ol>
+<li>找出Spring容器中所有的beanName</li>
+<li>判断beanName是不是以“/”开头</li>
+<li>如果是，则把它当作一个Handler，并把beanName作为key，bean对象作为value存入<strong>handlerMap</strong>中</li>
+<li>handlerMap就是一个Map</li>
+</ol>
+<p>RequestMappingHandlerMapping的寻找流程：</p>
+<ol>
+<li>找出Spring容器中所有beanType</li>
+<li>判断beanType是不是有@Controller注解，或者是不是有@RequestMapping注解</li>
+<li>判断成功则继续找beanType中加了@RequestMapping的Method</li>
+<li>并解析@RequestMapping中的内容，比如method、path，封装为一个RequestMappingInfo对象</li>
+<li>最后把RequestMappingInfo对象做为key，Method对象封装为HandlerMethod对象后作为value，存入<strong>registry</strong>中</li>
+<li>registry就是一个Map</li>
+</ol>
+<p>RouterFunctionMapping的寻找流程会有些区别，但是大体是差不多的，相当于是一个path对应一个HandlerFunction。</p>
+<p>各个HandlerMapping除开负责寻找Handler并记录映射关系之外，自然还需要根据请求路径找到对应的Handler，在源码中这三个HandlerMapping有一个共同的父类AbstractHandlerMapping</p>
+<p> ![截图 (9)](../img/截图 (9).png)</p>
+<p>AbstractHandlerMapping实现了HandlerMapping接口，并实现了getHandler(HttpServletRequest request)方法。</p>
+<p>AbstractHandlerMapping会负责调用子类的getHandlerInternal(HttpServletRequest request)方法从而找到请求对应的Handler，然后AbstractHandlerMapping负责将Handler和应用中所配置的HandlerInterceptor整合成为一个HandlerExecutionChain对象。</p>
+<p>所以寻找Handler的源码实现在各个HandlerMapping子类中的getHandlerInternal()中，根据请求路径找到Handler的过程并不复杂，因为路径和Handler的映射关系已经存在Map中了。</p>
+<p>比较困难的点在于，当DispatcherServlet接收到一个请求时，该利用哪个HandlerMapping来寻找Handler呢？看源码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> HandlerExecutionChain <span class="title function_">getHandler</span><span class="params">(HttpServletRequest request)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.handlerMappings != <span class="literal">null</span>) {</span><br><span class="line">        <span class="keyword">for</span> (HandlerMapping mapping : <span class="built_in">this</span>.handlerMappings) {</span><br><span class="line">            <span class="type">HandlerExecutionChain</span> <span class="variable">handler</span> <span class="operator">=</span> mapping.getHandler(request);</span><br><span class="line">            <span class="keyword">if</span> (handler != <span class="literal">null</span>) {</span><br><span class="line">                <span class="keyword">return</span> handler;</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>很简单，就是遍历，找到就返回，默认顺序为：</p>
+<p>![截图 (10)](../img/截图 (10).png)</p>
+<p>所以BeanNameUrlHandlerMapping的优先级最高，比如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component("/test")</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ZhouyuBeanNameController</span> <span class="keyword">implements</span> <span class="title class_">Controller</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> ModelAndView <span class="title function_">handleRequest</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        System.out.println(<span class="string">"Hello zhouyu"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ModelAndView</span>();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(method = RequestMethod.GET, path = "/test")</span></span><br><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"Hi zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>请求路径都是/test，但是最终是Controller接口的会生效。</p>
+<p><strong>什么是HandlerAdapter？</strong></p>
+<p>找到了Handler之后，接下来就该去执行了，比如执行下面这个test()</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(method = RequestMethod.GET, path = "/test")</span></span><br><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>但是由于有不同种类的Handler，所以执行方式是不一样的，再来总结一下Handler的类型：</p>
+<ol>
+<li>实现了Controller接口的Bean对象，执行的是Bean对象中的handleRequest()</li>
+<li>实现了HttpRequestHandler接口的Bean对象，执行的是Bean对象中的handleRequest()</li>
+<li>添加了@RequestMapping注解的方法，具体为一个HandlerMethod，执行的就是当前加了注解的方法</li>
+<li>一个HandlerFunction对象，执行的是HandlerFunction对象中的handle()</li>
+</ol>
+<p>所以，按逻辑来说，找到Handler之后，我们得判断它的类型，比如代码可能是这样的：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Object</span> <span class="variable">handler</span> <span class="operator">=</span> mappedHandler.getHandler();</span><br><span class="line"><span class="keyword">if</span> (handler <span class="keyword">instanceof</span> Controller) {</span><br><span class="line">    ((Controller)handler).handleRequest(request, response);</span><br><span class="line">} <span class="keyword">else</span> <span class="keyword">if</span> (handler <span class="keyword">instanceof</span> HttpRequestHandler) {</span><br><span class="line">    ((HttpRequestHandler)handler).handleRequest(request, response);</span><br><span class="line">} <span class="keyword">else</span> <span class="keyword">if</span> (handler <span class="keyword">instanceof</span> HandlerMethod) {</span><br><span class="line">    ((HandlerMethod)handler).getMethod().invoke(...);</span><br><span class="line">} <span class="keyword">else</span> <span class="keyword">if</span> (handler <span class="keyword">instanceof</span> HandlerFunction) {</span><br><span class="line">    ((HandlerFunction)handler).handle(...);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>但是SpringMVC并不是这么写的，还是采用的<strong>适配模式</strong>，把不同种类的Handler适配成一个HandlerAdapter，后续再执行HandlerAdapter的handle()方法就能执行不同种类Hanlder对应的方法。</p>
+<p>针对不同的Handler，会有不同的适配器：</p>
+<ol>
+<li>HttpRequestHandlerAdapter</li>
+<li>SimpleControllerHandlerAdapter</li>
+<li>RequestMappingHandlerAdapter</li>
+<li>HandlerFunctionAdapter</li>
+</ol>
+<p>适配逻辑为：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> HandlerAdapter <span class="title function_">getHandlerAdapter</span><span class="params">(Object handler)</span> <span class="keyword">throws</span> ServletException {</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.handlerAdapters != <span class="literal">null</span>) {</span><br><span class="line">        <span class="keyword">for</span> (HandlerAdapter adapter : <span class="built_in">this</span>.handlerAdapters) {</span><br><span class="line">            <span class="keyword">if</span> (adapter.supports(handler)) {</span><br><span class="line">                <span class="keyword">return</span> adapter;</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ServletException</span>(<span class="string">"No adapter for handler ["</span> + handler +</span><br><span class="line">                               <span class="string">"]: The DispatcherServlet configuration needs to include a HandlerAdapter that supports this handler"</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>传入handler，遍历上面四个Adapter，谁支持就返回谁，比如判断的代码依次为：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">supports</span><span class="params">(Object handler)</span> {</span><br><span class="line">    <span class="keyword">return</span> (handler <span class="keyword">instanceof</span> HttpRequestHandler);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">supports</span><span class="params">(Object handler)</span> {</span><br><span class="line">    <span class="keyword">return</span> (handler <span class="keyword">instanceof</span> Controller);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">boolean</span> <span class="title function_">supports</span><span class="params">(Object handler)</span> {</span><br><span class="line">    <span class="keyword">return</span> (handler <span class="keyword">instanceof</span> HandlerMethod &amp;&amp; supportsInternal((HandlerMethod) handler));</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">supports</span><span class="params">(Object handler)</span> {</span><br><span class="line">    <span class="keyword">return</span> handler <span class="keyword">instanceof</span> HandlerFunction;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>根据Handler适配出了对应的HandlerAdapter后，就执行具体HandlerAdapter对象的handle()方法了，比如：</p>
+<p>HttpRequestHandlerAdapter的handle()：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ModelAndView <span class="title function_">handle</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler)</span></span><br><span class="line">            <span class="keyword">throws</span> Exception {</span><br><span class="line">    ((HttpRequestHandler) handler).handleRequest(request, response);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>SimpleControllerHandlerAdapter的handle()：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ModelAndView <span class="title function_">handle</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler)</span></span><br><span class="line">            <span class="keyword">throws</span> Exception {</span><br><span class="line">    <span class="keyword">return</span> ((Controller) handler).handleRequest(request, response);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>HandlerFunctionAdapter的handle()：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">HandlerFunction&lt;?&gt; handlerFunction = (HandlerFunction&lt;?&gt;) handler;</span><br><span class="line">serverResponse = handlerFunction.handle(serverRequest);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>因为这三个接收的直接就是Requeset对象，不用SpringMVC做额外的解析，所以比较简单，比较复杂的是RequestMappingHandlerAdapter，它执行的是加了@RequestMapping的方法，而这种方法的写法可以是多种多样，SpringMVC需要根据方法的定义去解析Request对象，从请求中获取出对应的数据然后传递给方法，并执行。</p>
+<p><strong>@RequestMapping方法参数解析</strong></p>
+<p>当SpringMVC接收到请求，并找到了对应的Method之后，就要执行该方法了，不过在执行之前需要根据方法定义的参数信息，从请求中获取出对应的数据，然后将数据传给方法并执行。</p>
+<p>一个HttpServletRequest通常有：</p>
+<ol>
+<li>request parameter</li>
+<li>request attribute</li>
+<li>request session</li>
+<li>reqeust header</li>
+<li>reqeust body</li>
+</ol>
+<p>比如如下几个方法：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>表示要从request parameter中获取key为username的value</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(<span class="meta">@RequestParam("uname")</span> String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>表示要从request parameter中获取key为uname的value</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(<span class="meta">@RequestAttribute</span> String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>表示要从request attribute中获取key为username的value</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(<span class="meta">@SessionAttribute</span> String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>表示要从request session中获取key为username的value</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(<span class="meta">@RequestHeader</span> String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>表示要从request header中获取key为username的value</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(<span class="meta">@RequestBody</span> String username)</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>表示获取整个请求体</p>
+<p>所以，我们发现SpringMVC要去解析方法参数，看该参数到底是要获取请求中的哪些信息。</p>
+<p>而这个过程，源码中是通过HandlerMethodArgumentResolver来实现的，比如：</p>
+<ol>
+<li>RequestParamMethodArgumentResolver：负责处理@RequestParam</li>
+<li>RequestHeaderMethodArgumentResolver：负责处理@RequestHeader</li>
+<li>SessionAttributeMethodArgumentResolver：负责处理@SessionAttribute</li>
+<li>RequestAttributeMethodArgumentResolver：负责处理@RequestAttribute</li>
+<li>RequestResponseBodyMethodProcessor：负责处理@RequestBody</li>
+<li>还有很多其他的…</li>
+</ol>
+<p>而在判断某个参数该由哪个HandlerMethodArgumentResolver处理时，也是很粗暴：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> HandlerMethodArgumentResolver <span class="title function_">getArgumentResolver</span><span class="params">(MethodParameter parameter)</span> {</span><br><span class="line">    </span><br><span class="line">    <span class="type">HandlerMethodArgumentResolver</span> <span class="variable">result</span> <span class="operator">=</span> <span class="built_in">this</span>.argumentResolverCache.get(parameter);</span><br><span class="line">    <span class="keyword">if</span> (result == <span class="literal">null</span>) {</span><br><span class="line">        <span class="keyword">for</span> (HandlerMethodArgumentResolver resolver : <span class="built_in">this</span>.argumentResolvers) {</span><br><span class="line">            <span class="keyword">if</span> (resolver.supportsParameter(parameter)) {</span><br><span class="line">                result = resolver;</span><br><span class="line">                <span class="built_in">this</span>.argumentResolverCache.put(parameter, result);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>就是遍历所有的HandlerMethodArgumentResolver，哪个能支持处理当前这个参数就由哪个处理。</p>
+<p>比如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(method = RequestMethod.GET, path = "/test")</span></span><br><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">(<span class="meta">@RequestParam</span> <span class="meta">@SessionAttribute</span> String username)</span> {</span><br><span class="line">    System.out.println(username);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"zhouyu"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>以上代码的username将对应RequestParam中的username，而不是session中的，因为在源码中RequestParamMethodArgumentResolver更靠前。</p>
+<p>当然HandlerMethodArgumentResolver也会负责从request中获取对应的数据，对应的是resolveArgument()方法。</p>
+<p>比如RequestParamMethodArgumentResolver：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> Object <span class="title function_">resolveName</span><span class="params">(String name, MethodParameter parameter, NativeWebRequest request)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">    <span class="type">HttpServletRequest</span> <span class="variable">servletRequest</span> <span class="operator">=</span> request.getNativeRequest(HttpServletRequest.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (servletRequest != <span class="literal">null</span>) {</span><br><span class="line">        <span class="type">Object</span> <span class="variable">mpArg</span> <span class="operator">=</span> MultipartResolutionDelegate.resolveMultipartArgument(name, parameter, servletRequest);</span><br><span class="line">        <span class="keyword">if</span> (mpArg != MultipartResolutionDelegate.UNRESOLVABLE) {</span><br><span class="line">            <span class="keyword">return</span> mpArg;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">Object</span> <span class="variable">arg</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="type">MultipartRequest</span> <span class="variable">multipartRequest</span> <span class="operator">=</span> request.getNativeRequest(MultipartRequest.class);</span><br><span class="line">    <span class="keyword">if</span> (multipartRequest != <span class="literal">null</span>) {</span><br><span class="line">        List&lt;MultipartFile&gt; files = multipartRequest.getFiles(name);</span><br><span class="line">        <span class="keyword">if</span> (!files.isEmpty()) {</span><br><span class="line">            arg = (files.size() == <span class="number">1</span> ? files.get(<span class="number">0</span>) : files);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">if</span> (arg == <span class="literal">null</span>) {</span><br><span class="line">        String[] paramValues = request.getParameterValues(name);</span><br><span class="line">        <span class="keyword">if</span> (paramValues != <span class="literal">null</span>) {</span><br><span class="line">            arg = (paramValues.length == <span class="number">1</span> ? paramValues[<span class="number">0</span>] : paramValues);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> arg;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>核心是：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (arg == <span class="literal">null</span>) {</span><br><span class="line">    String[] paramValues = request.getParameterValues(name);</span><br><span class="line">    <span class="keyword">if</span> (paramValues != <span class="literal">null</span>) {</span><br><span class="line">        arg = (paramValues.length == <span class="number">1</span> ? paramValues[<span class="number">0</span>] : paramValues);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>按同样的思路，可以找到方法中每个参数所要求的值，从而执行方法，得到方法的返回值。</p>
+<p><strong>@RequestMapping方法返回值解析</strong></p>
+<p>而方法返回值，也会分为不同的情况。比如有没有加@ResponseBody注解，如果方法返回一个String:</p>
+<ol>
+<li>加了@ResponseBody注解：表示直接将这个String返回给浏览器</li>
+<li>没有加@ResponseBody注解：表示应该根据这个String找到对应的页面，把页面返回给浏览器</li>
+</ol>
+<p>在SpringMVC中，会利用HandlerMethodReturnValueHandler来处理返回值：</p>
+<ol>
+<li>RequestResponseBodyMethodProcessor：处理加了@ResponseBody注解的情况</li>
+<li>ViewNameMethodReturnValueHandler：处理没有加@ResponseBody注解并且返回值类型为String的情况</li>
+<li>ModelMethodProcessor：处理返回值是Model类型的情况</li>
+<li>还有很多其他的…</li>
+</ol>
+<p>我们这里只讲RequestResponseBodyMethodProcessor，因为它会处理加了@ResponseBody注解的情况，也是目前我们用得最多的情况。</p>
+<p>RequestResponseBodyMethodProcessor相当于会把方法返回的对象直接响应给浏览器，如果返回的是一个字符串，那么好说，直接把字符串响应给浏览器，那如果返回的是一个Map呢？是一个User对象呢？该怎么把这些复杂对象响应给浏览器呢？</p>
+<p>处理这块，SpringMVC会利用HttpMessageConverter来处理，比如默认情况下，SpringMVC会有4个HttpMessageConverter：</p>
+<ol>
+<li>ByteArrayHttpMessageConverter：处理返回值为<strong>字节数组</strong>的情况，把字节数组返回给浏览器</li>
+<li>StringHttpMessageConverter：处理返回值为<strong>字符串</strong>的情况，把字符串按指定的编码序列号后返回给浏览器</li>
+<li>SourceHttpMessageConverter：处理返回值为<strong>XML对象</strong>的情况，比如把DOMSource对象返回给浏览器</li>
+<li>AllEncompassingFormHttpMessageConverter：处理返回值为<strong>MultiValueMap对象</strong>的情况</li>
+</ol>
+<p>StringHttpMessageConverter的源码也比较简单：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">writeInternal</span><span class="params">(String str, HttpOutputMessage outputMessage)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    <span class="type">HttpHeaders</span> <span class="variable">headers</span> <span class="operator">=</span> outputMessage.getHeaders();</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.writeAcceptCharset &amp;&amp; headers.get(HttpHeaders.ACCEPT_CHARSET) == <span class="literal">null</span>) {</span><br><span class="line">        headers.setAcceptCharset(getAcceptedCharsets());</span><br><span class="line">    }</span><br><span class="line">    <span class="type">Charset</span> <span class="variable">charset</span> <span class="operator">=</span> getContentTypeCharset(headers.getContentType());</span><br><span class="line">    StreamUtils.copy(str, charset, outputMessage.getBody());</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>先看有没有设置Content-Type，如果没有设置则取默认的，默认为ISO-8859-1，所以默认情况下返回中文会乱码，可以通过以下来中方式来解决：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(method = RequestMethod.GET, path = "/test", produces = {"application/json;charset=UTF-8"})</span></span><br><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">test</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"周瑜"</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ComponentScan("com.zhouyu")</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebMvc</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppConfig</span> <span class="keyword">implements</span> <span class="title class_">WebMvcConfigurer</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">configureMessageConverters</span><span class="params">(List&lt;HttpMessageConverter&lt;?&gt;&gt; converters)</span> {</span><br><span class="line">        <span class="type">StringHttpMessageConverter</span> <span class="variable">messageConverter</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringHttpMessageConverter</span>();</span><br><span class="line">        messageConverter.setDefaultCharset(StandardCharsets.UTF_8);</span><br><span class="line">        converters.add(messageConverter);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>不过以上四个Converter是不能处理Map对象或User对象的，所以如果返回的是Map或User对象，那么得单独配置一个Converter，比如MappingJackson2HttpMessageConverter，这个Converter比较强大，能把String、Map、User对象等等都能转化成JSON格式。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ComponentScan("com.zhouyu")</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebMvc</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppConfig</span> <span class="keyword">implements</span> <span class="title class_">WebMvcConfigurer</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">configureMessageConverters</span><span class="params">(List&lt;HttpMessageConverter&lt;?&gt;&gt; converters)</span> {</span><br><span class="line">        <span class="type">MappingJackson2HttpMessageConverter</span> <span class="variable">messageConverter</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MappingJackson2HttpMessageConverter</span>();</span><br><span class="line">        messageConverter.setDefaultCharset(StandardCharsets.UTF_8);</span><br><span class="line">        converters.add(messageConverter);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>具体转化的逻辑就是Jackson2的转化逻辑。</p>
+<p><strong>总结</strong></p>
+<p>以上就是整个SpringMVC从启动到处理请求，从接收请求到执行方法的整体流程。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/">http://example.com/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Spring/">Spring</a></div><div class="post_share"><div class="social-share" data-image="/../img/spring-%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Spring源码(十二)-SpringMVC启动与请求处理流程解析</div></div></a></div><div class="next-post pull-right"><a href="/2024/03/12/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%B8%80)-Spring%E4%B9%8B%E4%BA%8B%E5%8A%A1%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十一)-Spring之事务底层源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Spring源码(十一)-Spring之事务底层源码解析</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-09</div><div class="title">Spring源码(九)-Spring之整合MyBatis底层源码解析</div></div></a></div><div><a href="/2023/09/04/Spring%E6%BA%90%E7%A0%81(%E4%BA%8C)-%E6%89%8B%E5%86%99%E6%A8%A1%E6%8B%9FSpring%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" title="Spring源码(二)-手写模拟Spring底层原理"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-04</div><div class="title">Spring源码(二)-手写模拟Spring底层原理</div></div></a></div><div><a href="/2024/03/04/Spring%E6%BA%90%E7%A0%81(%E4%BA%94)-Spring%E4%B9%8B%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81/" title="Spring源码(五)-Spring之循环依赖底层源码"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-04</div><div class="title">Spring源码(五)-Spring之循环依赖底层源码</div></div></a></div><div><a href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%85%AB)-Spring%E4%B9%8B%E9%85%8D%E7%BD%AE%E7%B1%BB%E8%A7%A3%E6%9E%90%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(八)-Spring之配置类解析源码解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-09</div><div class="title">Spring源码(八)-Spring之配置类解析源码解析</div></div></a></div><div><a href="/2024/03/05/Spring%E6%BA%90%E7%A0%81(%E5%85%AD)-Spring%E4%B9%8B%E6%8E%A8%E6%96%AD%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95/" title="Spring源码(六)-Spring之推断构造方法"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-05</div><div class="title">Spring源码(六)-Spring之推断构造方法</div></div></a></div><div><a href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><img class="cover" src="/../img/spring-%E5%B0%81%E9%9D%A2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-14</div><div class="title">Spring源码(十二)-SpringMVC启动与请求处理流程解析</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">43</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">愿内心深处的懦弱 不再将我吞噬</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(十二)-SpringMVC启动与请求处理流程解析"></a><div class="content"><a class="title" href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析">Spring源码(十二)-SpringMVC启动与请求处理流程解析</a><time datetime="2024-03-14T15:05:00.000Z" title="发表于 2024-03-14 23:05:00">2024-03-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(十二)-SpringMVC启动与请求处理流程解析"></a><div class="content"><a class="title" href="/2024/03/14/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%BA%8C)-SpringMVC%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90/" title="Spring源码(十二)-SpringMVC启动与请求处理流程解析">Spring源码(十二)-SpringMVC启动与请求处理流程解析</a><time datetime="2024-03-14T15:05:00.000Z" title="发表于 2024-03-14 23:05:00">2024-03-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%B8%80)-Spring%E4%B9%8B%E4%BA%8B%E5%8A%A1%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十一)-Spring之事务底层源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(十一)-Spring之事务底层源码解析"></a><div class="content"><a class="title" href="/2024/03/12/Spring%E6%BA%90%E7%A0%81(%E5%8D%81%E4%B8%80)-Spring%E4%B9%8B%E4%BA%8B%E5%8A%A1%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十一)-Spring之事务底层源码解析">Spring源码(十一)-Spring之事务底层源码解析</a><time datetime="2024-03-12T15:49:00.000Z" title="发表于 2024-03-12 23:49:00">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%8D%81)-Spring%E4%B9%8BAOP%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十)-Spring之AOP底层源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(十)-Spring之AOP底层源码解析"></a><div class="content"><a class="title" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E5%8D%81)-Spring%E4%B9%8BAOP%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(十)-Spring之AOP底层源码解析">Spring源码(十)-Spring之AOP底层源码解析</a><time datetime="2024-03-09T14:39:00.000Z" title="发表于 2024-03-09 22:39:00">2024-03-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析"><img src="/../img/spring-%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring源码(九)-Spring之整合MyBatis底层源码解析"></a><div class="content"><a class="title" href="/2024/03/09/Spring%E6%BA%90%E7%A0%81(%E4%B9%9D)-Spring%E4%B9%8B%E6%95%B4%E5%90%88MyBatis%E5%BA%95%E5%B1%82%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Spring源码(九)-Spring之整合MyBatis底层源码解析">Spring源码(九)-Spring之整合MyBatis底层源码解析</a><time datetime="2024-03-09T10:51:00.000Z" title="发表于 2024-03-09 18:51:00">2024-03-09</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 - 2024 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
