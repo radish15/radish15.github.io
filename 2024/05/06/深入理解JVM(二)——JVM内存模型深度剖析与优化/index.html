@@ -1,0 +1,238 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>深入理解JVM(二)——JVM内存模型深度剖析与优化 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="JDK体系结构 一、Java语言的跨平台特性 二、JVM整体结构及内存模型我们从这个类开始：Math.java 1234567891011121314151617public class Math &amp;#123;    public static final int initData = 666;    public static User user = new User();    public">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解JVM(二)——JVM内存模型深度剖析与优化">
+<meta property="og:url" content="http://example.com/2024/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%8C)%E2%80%94%E2%80%94JVM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="JDK体系结构 一、Java语言的跨平台特性 二、JVM整体结构及内存模型我们从这个类开始：Math.java 1234567891011121314151617public class Math &amp;#123;    public static final int initData = 666;    public static User user = new User();    public">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/jvm.jpg">
+<meta property="article:published_time" content="2024-05-06T14:10:00.000Z">
+<meta property="article:modified_time" content="2024-05-06T15:26:59.495Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/jvm.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2024/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%8C)%E2%80%94%E2%80%94JVM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '深入理解JVM(二)——JVM内存模型深度剖析与优化',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-05-06 23:26:59'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">12</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">深入理解JVM(二)——JVM内存模型深度剖析与优化</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-05-06T14:10:00.000Z" title="发表于 2024-05-06 22:10:00">2024-05-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-05-06T15:26:59.495Z" title="更新于 2024-05-06 23:26:59">2024-05-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/">Java后端</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/JVM/">JVM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="深入理解JVM(二)——JVM内存模型深度剖析与优化"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h1 id="JDK体系结构"><a href="#JDK体系结构" class="headerlink" title="JDK体系结构"></a>JDK体系结构</h1><p><img src="/../img/1715004929342.png" alt="1715004929342"></p>
+<h1 id="一、Java语言的跨平台特性"><a href="#一、Java语言的跨平台特性" class="headerlink" title="一、Java语言的跨平台特性"></a>一、Java语言的跨平台特性</h1><p><img src="/../img/cf05b43b46e91b5787f3d293a2a8a755.jpeg" alt="img"></p>
+<h1 id="二、JVM整体结构及内存模型"><a href="#二、JVM整体结构及内存模型" class="headerlink" title="二、JVM整体结构及内存模型"></a>二、JVM整体结构及内存模型</h1><p>我们从这个类开始：Math.java</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Math</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">initData</span> <span class="operator">=</span> <span class="number">666</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">User</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">()</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">2</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">c</span> <span class="operator">=</span> (a + b) * <span class="number">10</span>;</span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">Math</span> <span class="variable">math</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Math</span>();</span><br><span class="line">        System.out.println(math.compute());</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html">https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html</a></p>
+<p><strong>堆</strong>：new出来的对象</p>
+<p><strong>栈(线程)<strong>：存放局部变量。只要有一个线程运行，jvm就会为该线程分配一块单独的内存空间。比如当主线程运行，jvm会为该线程分配一块独立的线程栈空间，主线程中有方法执行，则在主线程的栈中又分配一个独立的栈帧内存空间，main方法执行，分给该方法一块单独的栈帧内存空间，用于存放main方法中的局部变量。若又有一个方法执行，则JVM又会在线程栈中给另外</strong>一个方法对应一块单独的栈帧内存空间</strong>；若有另外一个线程，则jvm又会从一大块栈分配内存给另一个线程。</p>
+<p>通过<code>javap -c Math.class</code>对Math.class进行反汇编，得到如下JVM汇编代码</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">Compiled from <span class="string">"Math.java"</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">com</span>.radish.jvm.Math {</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> initData;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> com.radish.jvm.User user;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> com.radish.jvm.Math();</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: aload_0</span><br><span class="line">       <span class="number">1</span>: invokespecial #<span class="number">1</span>                  <span class="comment">// Method java/lang/Object."&lt;init&gt;":()V</span></span><br><span class="line">       <span class="number">4</span>: <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">()</span>;</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: iconst_1                    <span class="comment">// 将int类型常量1压入操作数栈</span></span><br><span class="line">       <span class="number">1</span>: istore_1                    <span class="comment">// 将int类型值存入局部变量1</span></span><br><span class="line">       <span class="number">2</span>: iconst_2                    <span class="comment">// 将int类型常量2压入栈</span></span><br><span class="line">       <span class="number">3</span>: istore_2                    <span class="comment">// 将int类型值存入局部变量2</span></span><br><span class="line">       <span class="number">4</span>: iload_1                     <span class="comment">// 从局部变量1中装载int类型值</span></span><br><span class="line">       <span class="number">5</span>: iload_2                     <span class="comment">// 从局部变量2中装载int类型值</span></span><br><span class="line">       <span class="number">6</span>: iadd                        <span class="comment">// 执行int类型的加法</span></span><br><span class="line">       <span class="number">7</span>: bipush        <span class="number">10</span>            <span class="comment">// 常数到操作数栈：bipush</span></span><br><span class="line">       <span class="number">9</span>: imul                        <span class="comment">// 乘</span></span><br><span class="line">      <span class="number">10</span>: istore_3                    <span class="comment">// 将int类型值存入局部变量3</span></span><br><span class="line">      <span class="number">11</span>: iload_3                     <span class="comment">// 从局部变量3中装载int类型值</span></span><br><span class="line">      <span class="number">12</span>: ireturn                     <span class="comment">// 从方法中返回int类型的数据</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(java.lang.String[])</span>;</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: <span class="keyword">new</span>           #<span class="number">2</span>                  <span class="comment">// class com/radish/jvm/Math</span></span><br><span class="line">       <span class="number">3</span>: dup</span><br><span class="line">       <span class="number">4</span>: invokespecial #<span class="number">3</span>                  <span class="comment">// Method "&lt;init&gt;":()V</span></span><br><span class="line">       <span class="number">7</span>: astore_1</span><br><span class="line">       <span class="number">8</span>: getstatic     #<span class="number">4</span>                  <span class="comment">// Field java/lang/System.out:Ljava/io/PrintStream;</span></span><br><span class="line">      <span class="number">11</span>: aload_1</span><br><span class="line">      <span class="number">12</span>: invokevirtual #<span class="number">5</span>                  <span class="comment">// Method compute:()I</span></span><br><span class="line">      <span class="number">15</span>: invokevirtual #<span class="number">6</span>                  <span class="comment">// Method java/io/PrintStream.println:(I)V</span></span><br><span class="line">      <span class="number">18</span>: <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> {};</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: <span class="keyword">new</span>           #<span class="number">7</span>                  <span class="comment">// class com/radish/jvm/User</span></span><br><span class="line">       <span class="number">3</span>: dup</span><br><span class="line">       <span class="number">4</span>: invokespecial #<span class="number">8</span>                  <span class="comment">// Method com/radish/jvm/User."&lt;init&gt;":()V</span></span><br><span class="line">       <span class="number">7</span>: putstatic     #<span class="number">9</span>                  <span class="comment">// Field user:Lcom/radish/jvm/User;</span></span><br><span class="line">      <span class="number">10</span>: <span class="keyword">return</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>局部变量表：</p>
+<p>操作数栈：在方法执行过程中，根据字节码指令，往栈里写入数据或提取数据，即入栈/出栈。</p>
+<p><strong>程序计数器：</strong>行号，代码执行到的指针位置。<strong>字节码执行引擎</strong>每执行一行代码，就去修改程序计数器的值。</p>
+<p><strong>操作过程：</strong></p>
+<p>0: iconst_1                    // 将int类型常量1压入操作数栈</p>
+<p><img src="/../img/9f599e6c674a31d75f06863c730b7284.jpeg" alt="img"></p>
+<p>1: istore_1                    // 将int类型值存入局部变量1</p>
+<p><img src="/../img/dcc2801548f66f4b3cd730c8649f891e.jpeg" alt="img"></p>
+<p>2: iconst_2                    // 将int类型常量2压入栈<br>3: istore_2                    // 将int类型值存入局部变量2</p>
+<p>4: iload_1                     // 从局部变量1中装载int类型值<br>5: iload_2                     // 从局部变量2中装载int类型值</p>
+<p><img src="/../img/a364c5f1d769275252234ac8e836f43e.jpeg" alt="img"></p>
+<p>6: iadd                        // 执行int类型的加法</p>
+<p><img src="/../img/7e48dff212f11af4073ea37b5293c330.jpeg" alt="img"></p>
+<p>7: bipush        10            // 常数到操作数栈：bipush</p>
+<p><img src="/../img/0bd31d095564c87041b6fae31af706fd.jpeg" alt="img"></p>
+<p>9: imul                        // 乘</p>
+<p><img src="/../img/6411a81be7e4d6bc2be5c30c57bc130e.jpeg" alt="img"></p>
+<p>10: istore_3                    // 将int类型值存入局部变量3<br>11: iload_3                     // 从局部变量3中装载int类型值<br>12: ireturn                     // 从方法中返回int类型的数据</p>
+<p><img src="/../img/ad132478b18bb58d48d2cc0b1833315b.jpeg" alt="img"></p>
+<hr>
+<p><strong>方法出口：</strong>存放方法执行的现场信息，比如执行完compute方法时，返回到main方法的第几行</p>
+<p><img src="/../img/293d47638f63e07f915428d9039bce68.jpeg" alt="img"></p>
+<p>当<strong>局部变量</strong>存放的是<strong>对象</strong>，则只是存放对象的<strong>堆内存地址</strong>，实际对象存放在<strong>堆内存</strong>中。</p>
+<p><img src="/../img/d2a7fbae094d2023803ab3d2d19fffac-1715005806429.jpeg" alt="img"></p>
+<p>当<strong>方法区</strong>中的<strong>常量</strong>、<strong>静态变量</strong>的值为对象时，方法区存放对象的<strong>堆内存地址</strong>，而对象的值存放在<strong>堆内存</strong>中。</p>
+<p><strong>本地方法栈</strong>：当运行本地方法时，需要给本地方法分配内存，而就是在本地方法栈中分配内存。</p>
+<p><img src="/../img/a5c7ed84c50a175cb2b7b65e3fb35471.jpeg" alt="img"></p>
+<p><strong>栈、本地方法栈、程序计数器</strong>是每个线程<strong>独有的</strong>。</p>
+<p><strong>堆、方法区</strong>是<strong>共有的</strong>。</p>
+<p><img src="/../img/9ea27564a0abaa109f3649d3a9461e9d.jpeg" alt="img"></p>
+<p>每做完一次gc，对象的分代年龄会+1，直到分代年到15	，对象会被放入老年代</p>
+<p>老年代放满后，触发full gc，若回收的对象还是被gcroot引用，则OOM</p>
+<p>STW：Stop the world</p>
+<p>在gc过程中会触发stw机制</p>
+<h2 id="用jvisualvm观察堆gc情况"><a href="#用jvisualvm观察堆gc情况" class="headerlink" title="用jvisualvm观察堆gc情况"></a>用jvisualvm观察堆gc情况</h2><p>运行代码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HeapTest</span> {</span><br><span class="line"></span><br><span class="line">    <span class="type">byte</span>[] a = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1024</span> * <span class="number">100</span>];    <span class="comment">// 100KB</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException {</span><br><span class="line">        ArrayList&lt;HeapTest&gt; heapTests = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) {</span><br><span class="line">            heapTests.add(<span class="keyword">new</span> <span class="title class_">HeapTest</span>());</span><br><span class="line">            Thread.sleep(<span class="number">10</span>);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>用管理员模式打开控制开，运行命令<code>jvisualvm</code></p>
+<p><img src="/../img/6fc2c3ff501efec05440e2561819ec90.jpeg" alt="img"></p>
+<p><img src="/../img/37bf1f113f9a110134254ea152eeedf9.jpeg" alt="img"></p>
+<p>观察gc可得：</p>
+<p>当Eden区满之后，触发minor gc，对象会到s0区，下一次gc后，对象会到s1区，之后gc，对象会在s0和s1之间交换位置，直到s0或s1满了之后或分代年龄到了15，对象会进入到老年代，最后老年代满了之后，会触发full gc，还是满的话就会内存溢出。</p>
+<p><strong>补充一个问题：</strong></p>
+<p><strong>在minor gc过程中对象挪动后，引用如何修改？</strong></p>
+<p>对象在堆内部挪动的过程其实是复制，原有区域对象还在，一般不直接清理，JVM内部清理过程只是将对象分配指针移动到区域的头位置即可，比如扫描s0区域，扫到gcroot引用的非垃圾对象是将这些对象<strong>复制</strong>到s1或老年代，最后扫描完了将s0区域的对象分配指针移动到区域的起始位置即可，s0区域之前对象并不直接清理，当有新对象分配了，原有区域里的对象也就被清除了。</p>
+<p>minor gc在根扫描过程中会记录所有被扫描到的对象引用(在年轻代这些引用很少，因为大部分都是垃圾对象不会扫描到)，如果引用的对象被复制到新地址了，最后会一并更新引用指向新地址。</p>
+<h1 id="三、JVM内存参数设置"><a href="#三、JVM内存参数设置" class="headerlink" title="三、JVM内存参数设置"></a>三、JVM内存参数设置</h1><p><img src="/../img/1715008949438.png" alt="1715008949438"></p>
+<p>Spring Boot程序的JVM参数设置格式(Tomcat启动直接加在bin目录下catalina.sh文件里)：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java ‐Xms2048M ‐Xmx2048M ‐Xmn1024M ‐Xss512K ‐XX:MetaspaceSize=256M ‐XX:MaxMetaspaceSize=256M ‐jar microservice‐eurek a‐server.jar</span><br></pre></td></tr></tbody></table></figure>
+
+<p>关于元空间的JVM参数有两个：-XX:MetaspaceSize=N和 -XX:MaxMetaspaceSize=N</p>
+<p><strong>-XX：MaxMetaspaceSize</strong>： 设置元空间最大值， 默认是-1， 即不限制， 或者说只受限于本地内存大小。</p>
+<p><strong>-XX：MetaspaceSize</strong>： 指定元空间触发Fullgc的初始阈值(元空间无固定初始大小)， 以字节为单位，默认是21M，达到该值就会触发 full gc进行类型卸载，同时收集器会对该值进行调整：如果释放了大量的空间，就适当降低该值；如果释放了很少的空间，那么在不超过-XX：MaxMetaspaceSize（如果设置了的话）的情况下，适当提高该值。这个跟早期jdk版本的**-XX:PermSize<strong>参数意思不一样，</strong>-XX:PermSize**代表永久代的初始容量。</p>
+<p>由于调整元空间的大小需要Full GC，这是非常昂贵的操作，如果应用在启动的时候发生大量Full GC，通常都是由于永久代或元空间发生了大小调整，基于这种情况，一般建议在JVM参数中将MetaspaceSize和MaxMetaspaceSize设置成一样的值，并设置得比初始值要大， 对于8G物理内存的机器来说，一般我会将这两个值都设置为256M。</p>
+<p><strong>StackOverflowError示例：</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// JVM设置 ‐Xss128k(默认1M)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StackOverflowTest</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> <span class="variable">count</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">redo</span><span class="params">()</span> {</span><br><span class="line">        count++;</span><br><span class="line">        redo();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="keyword">try</span> {</span><br><span class="line">            redo();</span><br><span class="line">        } <span class="keyword">catch</span> (Throwable t) {</span><br><span class="line">            t.printStackTrace();</span><br><span class="line">            System.out.println(count);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>结论：</strong> -Xss设置越小count值越小，说明一个线程栈里能分配的栈帧就越少，但是对JVM整体来说能开启的线程数会更多</p>
+<p>**JVM内存参数大小该如何设置？ ** JVM参数大小设置并没有固定标准，需要根据实际项目情况分析，给大家举个例子</p>
+<p><strong>日均百万级订单交易系统如何设置JVM参数</strong></p>
+<p><img src="/../img/1715009169476.png" alt="1715009169476"></p>
+<p><strong>结论：通过上面这些内容介绍，大家应该对JVM优化有些概念了，就是尽可能让对象都在新生代里分配和回收，尽量别让太多对象频繁进入老年代，避免频繁对老年代进行垃圾回收，同时给系统充足的内存大小，避免新生代频繁的进行垃圾回收。</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%8C)%E2%80%94%E2%80%94JVM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96/">http://example.com/2024/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%8C)%E2%80%94%E2%80%94JVM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/JVM/">JVM</a></div><div class="post_share"><div class="social-share" data-image="/../img/jvm.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/05/07/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%89)%E2%80%94%E2%80%94JVM%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" title="深入理解JVM(三)——JVM对象创建与内存分配机制深度剖析"><img class="cover" src="/../img/jvm.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">深入理解JVM(三)——JVM对象创建与内存分配机制深度剖析</div></div></a></div><div class="next-post pull-right"><a href="/2024/04/25/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%80)%E2%80%94%E2%80%94%E4%BB%8EJDK%E6%BA%90%E7%A0%81%E7%BA%A7%E5%88%AB%E5%BD%BB%E5%BA%95%E5%89%96%E6%9E%90JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA/" title="深入理解JVM(一)——从JDK源码级别彻底剖析JVM类加载机"><img class="cover" src="/../img/jvm.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">深入理解JVM(一)——从JDK源码级别彻底剖析JVM类加载机</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/05/08/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%94)%E2%80%94%E2%80%94JVM%E8%B0%83%E4%BC%98%E5%B7%A5%E5%85%B7%E8%AF%A6%E8%A7%A3%E5%8F%8A%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="深入理解JVM(五)——JVM调优工具详解及调优实战"><img class="cover" src="/../img/jvm.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-05-08</div><div class="title">深入理解JVM(五)——JVM调优工具详解及调优实战</div></div></a></div><div><a href="/2024/04/25/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%80)%E2%80%94%E2%80%94%E4%BB%8EJDK%E6%BA%90%E7%A0%81%E7%BA%A7%E5%88%AB%E5%BD%BB%E5%BA%95%E5%89%96%E6%9E%90JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA/" title="深入理解JVM(一)——从JDK源码级别彻底剖析JVM类加载机"><img class="cover" src="/../img/jvm.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-04-25</div><div class="title">深入理解JVM(一)——从JDK源码级别彻底剖析JVM类加载机</div></div></a></div><div><a href="/2024/05/07/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%89)%E2%80%94%E2%80%94JVM%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" title="深入理解JVM(三)——JVM对象创建与内存分配机制深度剖析"><img class="cover" src="/../img/jvm.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-05-07</div><div class="title">深入理解JVM(三)——JVM对象创建与内存分配机制深度剖析</div></div></a></div><div><a href="/2024/05/08/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E5%9B%9B)%E2%80%94%E2%80%94%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%BA%95%E5%B1%82%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3/" title="深入理解JVM(四)——垃圾收集器与底层算法详解"><img class="cover" src="/../img/jvm.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-05-08</div><div class="title">深入理解JVM(四)——垃圾收集器与底层算法详解</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">12</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">愿内心深处的懦弱 不再将我吞噬</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JDK%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">JDK体系结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81Java%E8%AF%AD%E8%A8%80%E7%9A%84%E8%B7%A8%E5%B9%B3%E5%8F%B0%E7%89%B9%E6%80%A7"><span class="toc-number">2.</span> <span class="toc-text">一、Java语言的跨平台特性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81JVM%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.</span> <span class="toc-text">二、JVM整体结构及内存模型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%A8jvisualvm%E8%A7%82%E5%AF%9F%E5%A0%86gc%E6%83%85%E5%86%B5"><span class="toc-number">3.1.</span> <span class="toc-text">用jvisualvm观察堆gc情况</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81JVM%E5%86%85%E5%AD%98%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE"><span class="toc-number">4.</span> <span class="toc-text">三、JVM内存参数设置</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/05/08/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%94)%E2%80%94%E2%80%94JVM%E8%B0%83%E4%BC%98%E5%B7%A5%E5%85%B7%E8%AF%A6%E8%A7%A3%E5%8F%8A%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="深入理解JVM(五)——JVM调优工具详解及调优实战"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="深入理解JVM(五)——JVM调优工具详解及调优实战"></a><div class="content"><a class="title" href="/2024/05/08/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%94)%E2%80%94%E2%80%94JVM%E8%B0%83%E4%BC%98%E5%B7%A5%E5%85%B7%E8%AF%A6%E8%A7%A3%E5%8F%8A%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="深入理解JVM(五)——JVM调优工具详解及调优实战">深入理解JVM(五)——JVM调优工具详解及调优实战</a><time datetime="2024-05-08T14:21:00.000Z" title="发表于 2024-05-08 22:21:00">2024-05-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/08/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E5%9B%9B)%E2%80%94%E2%80%94%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%BA%95%E5%B1%82%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3/" title="深入理解JVM(四)——垃圾收集器与底层算法详解"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="深入理解JVM(四)——垃圾收集器与底层算法详解"></a><div class="content"><a class="title" href="/2024/05/08/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E5%9B%9B)%E2%80%94%E2%80%94%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%BA%95%E5%B1%82%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3/" title="深入理解JVM(四)——垃圾收集器与底层算法详解">深入理解JVM(四)——垃圾收集器与底层算法详解</a><time datetime="2024-05-08T12:43:00.000Z" title="发表于 2024-05-08 20:43:00">2024-05-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/07/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%89)%E2%80%94%E2%80%94JVM%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" title="深入理解JVM(三)——JVM对象创建与内存分配机制深度剖析"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="深入理解JVM(三)——JVM对象创建与内存分配机制深度剖析"></a><div class="content"><a class="title" href="/2024/05/07/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%89)%E2%80%94%E2%80%94JVM%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" title="深入理解JVM(三)——JVM对象创建与内存分配机制深度剖析">深入理解JVM(三)——JVM对象创建与内存分配机制深度剖析</a><time datetime="2024-05-07T13:15:00.000Z" title="发表于 2024-05-07 21:15:00">2024-05-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%8C)%E2%80%94%E2%80%94JVM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96/" title="深入理解JVM(二)——JVM内存模型深度剖析与优化"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="深入理解JVM(二)——JVM内存模型深度剖析与优化"></a><div class="content"><a class="title" href="/2024/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%BA%8C)%E2%80%94%E2%80%94JVM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96/" title="深入理解JVM(二)——JVM内存模型深度剖析与优化">深入理解JVM(二)——JVM内存模型深度剖析与优化</a><time datetime="2024-05-06T14:10:00.000Z" title="发表于 2024-05-06 22:10:00">2024-05-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/04/25/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%80)%E2%80%94%E2%80%94%E4%BB%8EJDK%E6%BA%90%E7%A0%81%E7%BA%A7%E5%88%AB%E5%BD%BB%E5%BA%95%E5%89%96%E6%9E%90JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA/" title="深入理解JVM(一)——从JDK源码级别彻底剖析JVM类加载机"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="深入理解JVM(一)——从JDK源码级别彻底剖析JVM类加载机"></a><div class="content"><a class="title" href="/2024/04/25/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%80)%E2%80%94%E2%80%94%E4%BB%8EJDK%E6%BA%90%E7%A0%81%E7%BA%A7%E5%88%AB%E5%BD%BB%E5%BA%95%E5%89%96%E6%9E%90JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA/" title="深入理解JVM(一)——从JDK源码级别彻底剖析JVM类加载机">深入理解JVM(一)——从JDK源码级别彻底剖析JVM类加载机</a><time datetime="2024-04-25T13:40:00.000Z" title="发表于 2024-04-25 21:40:00">2024-04-25</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 - 2024 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
