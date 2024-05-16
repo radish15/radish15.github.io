@@ -1,0 +1,305 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Java开发面试题总结 | 萝卜的博客</title><meta name="author" content="Radish"><meta name="copyright" content="Radish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一、Java基础1、面向对象什么是面向对象面向过程注重的是解决问题的过程和顺序。 面相对象解决问题的参与者和其所需要做事情。 例如：洗衣服 面向过程：1.打开洗衣机 2.放衣服 3.放洗衣粉 4.清洗 5.烘干 面向对象：拆除洗衣机和人两个对象，人：打开洗衣机，放衣服，放洗衣粉洗衣机：清洗，烘干 从以上例子能看出，面向过程比较直接高效，而面向对象更易于复用、扩展和维护  面向对象的三种特征封装 指">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java开发面试题总结">
+<meta property="og:url" content="http://example.com/2024/05/14/Java%E5%BC%80%E5%8F%91%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="萝卜的博客">
+<meta property="og:description" content="一、Java基础1、面向对象什么是面向对象面向过程注重的是解决问题的过程和顺序。 面相对象解决问题的参与者和其所需要做事情。 例如：洗衣服 面向过程：1.打开洗衣机 2.放衣服 3.放洗衣粉 4.清洗 5.烘干 面向对象：拆除洗衣机和人两个对象，人：打开洗衣机，放衣服，放洗衣粉洗衣机：清洗，烘干 从以上例子能看出，面向过程比较直接高效，而面向对象更易于复用、扩展和维护  面向对象的三种特征封装 指">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/jvm.jpg">
+<meta property="article:published_time" content="2024-05-14T13:06:00.000Z">
+<meta property="article:modified_time" content="2024-05-16T15:33:17.352Z">
+<meta property="article:author" content="Radish">
+<meta property="article:tag" content="Tomcat">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/jvm.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2024/05/14/Java%E5%BC%80%E5%8F%91%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Java开发面试题总结',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-05-16 23:33:17'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/modify.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">67</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="萝卜的博客"><span class="site-name">萝卜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/message/"><i class="fa-fw fa fa-coffee"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/%E9%9F%B3%E4%B9%90"><i class="fa-fw /music/"></i><span> 0</span></a></li><li><a class="site-page child" href="/%E8%A7%86%E9%A2%91"><i class="fa-fw /movies/"></i><span> 1</span></a></li></ul></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Java开发面试题总结</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-05-14T13:06:00.000Z" title="发表于 2024-05-14 21:06:00">2024-05-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-05-16T15:33:17.352Z" title="更新于 2024-05-16 23:33:17">2024-05-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/">Java后端</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java%E5%90%8E%E7%AB%AF/%E9%9D%A2%E8%AF%95%E9%A2%98/">面试题</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Java开发面试题总结"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h1 id="一、Java基础"><a href="#一、Java基础" class="headerlink" title="一、Java基础"></a>一、Java基础</h1><h2 id="1、面向对象"><a href="#1、面向对象" class="headerlink" title="1、面向对象"></a>1、面向对象</h2><h3 id="什么是面向对象"><a href="#什么是面向对象" class="headerlink" title="什么是面向对象"></a>什么是面向对象</h3><p>面向过程注重的是解决问题的过程和顺序。</p>
+<p>面相对象解决问题的参与者和其所需要做事情。</p>
+<p>例如：洗衣服</p>
+<p>面向过程：1.打开洗衣机 2.放衣服 3.放洗衣粉 4.清洗 5.烘干</p>
+<p>面向对象：拆除洗衣机和人两个对象，<br>人：打开洗衣机，放衣服，放洗衣粉<br>洗衣机：清洗，烘干</p>
+<p>从以上例子能看出，面向过程比较直接高效，而面向对象更易于复用、扩展和维护 </p>
+<h3 id="面向对象的三种特征"><a href="#面向对象的三种特征" class="headerlink" title="面向对象的三种特征"></a>面向对象的三种特征</h3><p><strong>封装</strong></p>
+<p>指将对象的状态和行为包装起来，隐藏其内部实现的细节，提供公共接口供外部调用。</p>
+<p><strong>继承</strong></p>
+<p>基于一个已有的类创建新的类，继承原有类的属性和方法， 实现代码的重用和扩展 。</p>
+<p><strong>多态</strong></p>
+<p>指同一操作作用于不同的对象，可以产生不同的结果。多态的实现依赖于对象的继承关系和方法的重载和重写。 </p>
+<h2 id="2、JDK、JRM、JVM"><a href="#2、JDK、JRM、JVM" class="headerlink" title="2、JDK、JRM、JVM"></a>2、JDK、JRM、JVM</h2><p>JDK是Java开发工具包，包含java编译器javac，以及java运行时环境。</p>
+<p>JRM是Java运行时环境，包括java运行时所需要类库，以及JVM。</p>
+<p>JVM是java虚拟机。</p>
+<p><img src="/../img/1715697625665.png" alt="1715697625665"></p>
+<h2 id="3、-x3D-x3D-和equals的区别"><a href="#3、-x3D-x3D-和equals的区别" class="headerlink" title="3、==和equals的区别"></a>3、==和equals的区别</h2><p>对于基本数据类型，==和equals都是比较值是否相等。</p>
+<p>对于引用数据类型，==比较的是对象存储的堆内存地址，equals需要看对象是否重写equals方法，若有重写，则根据重写逻辑比较对象里的属性；若没有则调用Object类的equals方法用==去比较。</p>
+<h2 id="4、hashCode和equals"><a href="#4、hashCode和equals" class="headerlink" title="4、hashCode和equals"></a>4、hashCode和equals</h2><p><strong>hashCode</strong></p>
+<p>hashCode() 的作用是获取哈希码，也称为散列码；它实际上是返回一个int整数。这个哈希码的作用是确定该对象在哈希表中的索引位置。hashCode() 定义在JDK的Object.java中，Java中的任何类都包含有 hashCode() 函数。<br>散列表存储的是键值对(key-value)，它的特点是：能根据“键”快速的检索出对应的“值”。这其中就利用 到了散列码！（可以快速找到所需要的对象）</p>
+<p><strong>为什么要有hashCode：</strong> </p>
+<p>以“HashSet如何检查重复”为例子来说明为什么要有hashCode：<br>对象加入HashSet时，HashSet会先计算对象的hashcode值来判断对象加入的位置，看该位置是否有 值，如果没有、HashSet会假设对象没有重复出现。但是如果发现有值，这时会调用equals（）方法来 检查两个对象是否真的相同。如果两者相同，HashSet就不会让其加入操作成功。如果不同的话，就会 重新散列到其他位置。这样就大大减少了equals的次数，相应就大大提高了执行速度。</p>
+<ul>
+<li>如果两个对象相等，则hashcode一定也是相同的 </li>
+<li>两个对象相等,对两个对象分别调用equals方法都返回true </li>
+<li>两个对象有相同的hashcode值，它们也不一定是相等的 </li>
+<li>因此，equals方法被覆盖过，则hashCode方法也必须被覆盖 </li>
+<li>hashCode()的默认行为是对堆上的对象产生独特值。如果没有重写hashCode()，则该class的两个对象无论如何都不会相等（即使这两个对象指向相同的数据）</li>
+</ul>
+<h2 id="5、final"><a href="#5、final" class="headerlink" title="5、final"></a>5、final</h2><p>最终的</p>
+<ul>
+<li>修饰类：表示类不可被继承 </li>
+<li>修饰方法：表示方法不可被子类覆盖，但是可以重载 </li>
+<li>修饰变量：表示变量一旦被赋值就不可以更改它的值</li>
+</ul>
+<p>（1）修饰成员变量</p>
+<ul>
+<li>如果final修饰的是类变量，只能在静态初始化块中指定初始值或者声明该类变量时指定初始值。</li>
+<li>如果final修饰的是成员变量，可以在非静态初始化块、声明该变量或者构造器中执行初始值。</li>
+</ul>
+<p>（2）修饰局部变量</p>
+<p>系统不会为局部变量进行初始化，局部变量必须由程序员显示初始化。因此使用final修饰局部变量时， 即可以在定义时指定默认值（后面的代码不能对变量再赋值），也可以不指定默认值，而在后面的代码中对final变量赋初值（仅一次）</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FinalVar</span> {</span><br><span class="line">	<span class="keyword">final</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">0</span>;<span class="comment">//再声明的时候就需要赋值 或者静态代码块赋值</span></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment"> &nbsp; &nbsp;static{</span></span><br><span class="line"><span class="comment"> &nbsp;  a = 0;</span></span><br><span class="line"><span class="comment"> &nbsp; &nbsp;}</span></span><br><span class="line"><span class="comment"> &nbsp; &nbsp;*/</span></span><br><span class="line"> &nbsp; &nbsp;<span class="keyword">final</span> <span class="type">int</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">0</span>;<span class="comment">//再声明的时候就需要赋值 或者代码块中赋值 &nbsp; 或者构造器赋值</span></span><br><span class="line">	<span class="comment">/*{</span></span><br><span class="line"><span class="comment"> &nbsp; &nbsp; &nbsp; &nbsp;b = 0;</span></span><br><span class="line"><span class="comment"> &nbsp; &nbsp;}*/</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;<span class="keyword">final</span> <span class="type">int</span> localA; &nbsp; <span class="comment">//局部变量只声明没有初始化，不会报错,与final无关。</span></span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;localA = <span class="number">0</span>;<span class="comment">//在使用之前一定要赋值</span></span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;<span class="comment">//localA = 1; 但是不允许第二次赋值</span></span><br><span class="line"> &nbsp;  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>（3）修饰基本类型数据和引用类型数据</p>
+<ul>
+<li>如果是基本数据类型的变量，则其数值一旦在初始化之后便不能更改； </li>
+<li>如果是引用类型的变量，则在对其初始化之后便不能再让其指向另一个对象。<strong>但是引用的值是可变的。</strong></li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FinalReferenceTest</span>{</span><br><span class="line"> &nbsp; &nbsp;<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">()</span>{</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;<span class="keyword">final</span> <span class="type">int</span>[] iArr={<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>};</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;iArr[<span class="number">2</span>]=-<span class="number">3</span>;<span class="comment">//合法 </span></span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;iArr=<span class="literal">null</span>;<span class="comment">//非法，对iArr不能重新赋值</span></span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;<span class="keyword">final</span> <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>(<span class="number">25</span>);</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;p.setAge(<span class="number">24</span>);<span class="comment">//合法</span></span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;p=<span class="literal">null</span>;<span class="comment">//非法 </span></span><br><span class="line"> &nbsp; } &nbsp; </span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>**为什么局部内部类和匿名内部类只能访问局部final变量？ **</p>
+<p>编译之后会生成两个class文件，Test.class Test1.class</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Test</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> { &nbsp; &nbsp; </span><br><span class="line">    } &nbsp; </span><br><span class="line"> &nbsp; &nbsp;<span class="comment">//局部final变量a,b</span></span><br><span class="line"> &nbsp; &nbsp;<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">test</span><span class="params">(<span class="keyword">final</span> <span class="type">int</span> b)</span> {<span class="comment">//jdk8在这里做了优化, 不用写,语法糖，但实际上也是有的，也不能修改</span></span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;<span class="keyword">final</span> <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">10</span>;</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;<span class="comment">//匿名内部类</span></span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp;<span class="keyword">new</span> <span class="title class_">Thread</span>(){</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> {</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;System.out.println(a);</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;System.out.println(b);</span><br><span class="line"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; };</span><br><span class="line"> &nbsp; &nbsp; &nbsp; }.start();</span><br><span class="line"> &nbsp; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">OutClass</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">age</span> <span class="operator">=</span> <span class="number">12</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">outPrint</span><span class="params">(<span class="keyword">final</span> <span class="type">int</span> x)</span> {</span><br><span class="line">        <span class="keyword">class</span> <span class="title class_">InClass</span> {</span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">InPrint</span><span class="params">()</span> {</span><br><span class="line">                System.out.println(x);</span><br><span class="line">                System.out.println(age);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">InClass</span>().InPrint();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>首先需要知道的一点是: 内部类和外部类是处于同一个级别的，内部类不会因为定义在方法中就会随着方法的执行完毕就被销毁。</p>
+<p>这里就会产生问题：当外部类的方法结束时，局部变量就会被销毁了，但是内部类对象可能还存在(只有没有人再引用它时，才会死亡)。这里就出现了一个矛盾：内部类对象访问了一个不存在的变量。为了解决这个问题，就将局部变量复制了一份作为内部类的成员变量，这样当局部变量死亡后，内部类仍可以访问它，实际访问的是局部变量的”copy”。这样就好像延长了局部变量的生命周期 </p>
+<p>将局部变量复制为内部类的成员变量时，必须保证这两个变量是一样的，也就是如果我们在内部类中修改了成员变量，方法中的局部变量也得跟着改变，怎么解决问题呢？</p>
+<p>就将局部变量设置为final，对它初始化后，我就不让你再去修改这个变量，就保证了内部类的成员变量和方法的局部变量的一致性。这实际上也是一种妥协。使得局部变量与内部类内建立的拷贝保持一致。</p>
+<h2 id="6、String、StringBuffer、StringBuilder"><a href="#6、String、StringBuffer、StringBuilder" class="headerlink" title="6、String、StringBuffer、StringBuilder"></a>6、String、StringBuffer、StringBuilder</h2><p>String是final修饰的，不可变，每次操作都会产生新的String对象</p>
+<p>StringBuffer和StringBuilder都是在原对象上操作</p>
+<p>StringBuffer是线程安全的，StringBuilder线程不安全的</p>
+<p>StringBuffer方法都是synchronized修饰的</p>
+<p>性能：StringBuilder &gt; StringBuffer &gt; String</p>
+<p>场景：经常需要改变字符串内容时使用后面两个</p>
+<p>优先使用StringBuilder，多线程使用共享变量时使用StringBuffer</p>
+<h2 id="7、重载和重写的区别"><a href="#7、重载和重写的区别" class="headerlink" title="7、重载和重写的区别"></a>7、重载和重写的区别</h2><ul>
+<li>重载</li>
+</ul>
+<p>发生在同一个类中，方法名必须相同，参数类型不同、个数不同、顺序不同，方法返回值和访问修饰符可以不同，发生在编译时。</p>
+<ul>
+<li>重写</li>
+</ul>
+<p>发生在父子类中，方法名、参数列表必须相同，返回值范围小于等于父类，抛出的异常范围小于等于父类，访问修饰符范围大于等于父类；如果父类方法访问修饰符为private则子类就不能重写该方法。 </p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,String b)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">add</span><span class="params">(<span class="type">int</span> a,String b)</span></span><br><span class="line"><span class="comment">//编译报错</span></span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h2 id="8、接口和抽象类的区别"><a href="#8、接口和抽象类的区别" class="headerlink" title="8、接口和抽象类的区别"></a>8、接口和抽象类的区别</h2><ul>
+<li>抽象类可以存在普通成员函数，而接口中只能存在public abstract方法。</li>
+<li>抽象类中的成员变量可以是各种类型的，而接口中的成员变量只能是public static final类型的。</li>
+<li>抽象类只能继承一个，接口可以实现多个。</li>
+</ul>
+<p>接口的设计目的，是对类的行为进行约束（更准确的说是一种“有”约束，因为接口不能规定类不可以有什么行为），也就是提供一种机制，可以强制要求不同的类具有相同的行为。它只约束了行为的有无，但不对如何实现行为进行限制。 </p>
+<p>而抽象类的设计目的，是代码复用。当不同的类具有某些相同的行为(记为行为集合A)，且其中一部分行为的实现方式一致时（A的非真子集，记为B），可以让这些类都派生于一个抽象类。在这个抽象类中实现了B，避免让所有的子类来实现B，这就达到了代码复用的目的。而A减B的部分，留给各个子类自己实现。正是因为A-B在这里没有实现，所以抽象类不允许实例化出来（否则当调用到A-B时，无法执行）。</p>
+<p>抽象类是对类本质的抽象，表达的是<code>is a</code>的关系，比如： BMW is a Car 。抽象类包含并实现子类的通用特性，将子类存在差异化的特性进行抽象，交由子类去实现。</p>
+<p>而接口是对行为的抽象，表达的是 like a 的关系。比如： Bird like a Aircraft （像飞行器一样可以飞），但其本质上 is a <code>Bird </code>。接口的核心是定义行为，即实现类可以做什么，至于实现类主体是谁、是如何实现的，接口并不关心。</p>
+<p>使用场景：当你关注一个事物的本质的时候，用抽象类；当你关注一个操作的时候，用接口。 </p>
+<p>抽象类的功能要远超过接口，但是，定义抽象类的代价高。因为高级语言来说（从实际设计上来说也是）每个类只能继承一个类。在这个类中，你必须继承或编写出其所有子类的所有共性。虽然接口在功能上会弱化许多，但是它只是针对一个动作的描述。而且你可以在一个类中同时实现多个接口。在设计 阶段会降低难度</p>
+<h2 id="9、List和Set的区别"><a href="#9、List和Set的区别" class="headerlink" title="9、List和Set的区别"></a>9、List和Set的区别</h2><ul>
+<li><p>List：有序，按对象进入的顺序保存对象，可重复，允许多个Null元素对象，可以使用Iterator取出 所有元素，在逐一遍历，还可以使用get(int index)获取指定下标的元素 </p>
+</li>
+<li><p>Set：无序，不可重复，最多允许有一个Null元素对象，取元素时只能用iterator接口取得所有元素，在逐一遍历各个元素</p>
+</li>
+</ul>
+<h2 id="10、ArrayList和LinkedList区别"><a href="#10、ArrayList和LinkedList区别" class="headerlink" title="10、ArrayList和LinkedList区别"></a>10、ArrayList和LinkedList区别</h2><p>ArrayList：基于动态数组，连续内存存储，适合下标访问（随机访问），扩容机制：因为数组长度固定，超出长度存数据时需要新建数组，然后将老数组的数据拷贝到新数组，如果不是尾部插入数据还会涉及到元素的移动（往后复制一份，插入新元素），使用尾插法并指定初始容量可以极大提升性能、甚至超过linkedList（需要创建大量的node对象）</p>
+<p>LinkedList：基于链表，可以存储在分散的内存中，适合做数据插入及删除操作，不适合查询：需要逐一遍历</p>
+<p>遍历LinkedList必须使用iterator不能使用for循环，因为每次for循环体内通过get(i)取得某一元素时都需 要对list重新进行遍历，性能消耗极大。</p>
+<p>另外不要试图使用indexOf等返回元素索引，并利用其进行遍历，使用indexlOf对list进行了遍历，当结果为空时会遍历整个列表。</p>
+<h2 id="11、HashMap和HashTable有什么区别？其底层实现是什么？"><a href="#11、HashMap和HashTable有什么区别？其底层实现是什么？" class="headerlink" title="11、HashMap和HashTable有什么区别？其底层实现是什么？"></a>11、HashMap和HashTable有什么区别？其底层实现是什么？</h2><ol>
+<li>区别：</li>
+</ol>
+<p>（1）HashMap方法没有synchronized修饰，线程非安全，HashTable线程安全；</p>
+<p>（2）HashMap允许key和value为null，而HashTable不允许</p>
+<ol start="2">
+<li>底层实现：数组+链表实现</li>
+</ol>
+<p>jdk8开始链表高度到8、数组长度超过64，链表转变为红黑树，元素以内部类Node节点存在 </p>
+<ul>
+<li><p>计算key的hash值，二次hash然后对数组长度取模，对应到数组下标 </p>
+</li>
+<li><p>如果没有产生hash冲突（下标位置没有元素），则直接创建Node存入数组</p>
+</li>
+<li><p>如果产生hash冲突，先进行equal比较，相同则取代该元素，不同，则判断链表高度插入链表，链表高度达到8，并且数组长度到64则转变为红黑树，长度低于6则将红黑树转回链表</p>
+</li>
+<li><p>key为null，存在下标0的位置</p>
+</li>
+</ul>
+<ol start="3">
+<li>扩容</li>
+</ol>
+<p>当HashMap里面的元素个数超过临界值的时候会自动触发扩容。 临界值 = 负载因子 X 容量大小，负载因子的默认值是0.75，而容量大小是16。也就是说， 第1次扩容的动作会在元素个数达到12的时候触发，扩容的大小是原来的2倍。HashMap 的最大容量是Integer.MAX_VALUE也就是2的31次方减1。</p>
+<p>由于动态扩容机制的存在，所以我们在实际应用的时候，最好在集合初始化的时候明确去指定集合的大小，从而避免频繁扩容带来性能上的消耗。</p>
+<p>假设，我们向HashMap中插入1024个元素，如果按照默认容量大小是16的情况下，随着元素的不断增加，会造成至少7次扩容。而这7次扩容过程中，需要重新去创建新的Hash表，并且进行数据的迁移，对性能的影响是非常大的。</p>
+<ol start="4">
+<li>负载因子为什么默认0.75</li>
+</ol>
+<ul>
+<li>负载因子的值越大，也就意味着触发扩容的元素个数就越多。虽然，它的整体空间利用率会比较高，但是Hash冲突的概率也会增加。 </li>
+<li>那么，反之，负载因子的值越小，那么触发扩容元素的个数也就越少，也就意味着Hash冲突的概率也会减少。但是，对于内存空间的浪费自然就比较多了，而且还会增加扩容的频率。</li>
+</ul>
+<h2 id="12、ConcurrentHashMap原理，jdk7和jdk8版本的区别"><a href="#12、ConcurrentHashMap原理，jdk7和jdk8版本的区别" class="headerlink" title="12、ConcurrentHashMap原理，jdk7和jdk8版本的区别"></a>12、ConcurrentHashMap原理，jdk7和jdk8版本的区别</h2><h3 id="JDK7"><a href="#JDK7" class="headerlink" title="JDK7"></a>JDK7</h3><p>数据结构：ReentrantLock+Segment+HashEntry，一个Segment中包含一个HashEntry数组，每个 HashEntry又是一个链表结构</p>
+<p>元素查询：二次hash，第一次Hash定位到Segment，第二次Hash定位到元素所在的链表的头部</p>
+<p>锁：Segment分段锁 Segment继承了ReentrantLock，锁定操作的Segment，其他的Segment不受影 响，并发度为segment个数，可以通过构造函数指定，数组扩容不会影响其他的segment</p>
+<p>get方法无需加锁，volatile保证可见性</p>
+<h3 id="JDK8"><a href="#JDK8" class="headerlink" title="JDK8"></a>JDK8</h3><p>数据结构：synchronized+CAS+Node+红黑树，Node的val和next都用volatile修饰，保证可见性查找，替换，赋值操作都使用CAS。</p>
+<p>锁：锁链表的head节点，不影响其他元素的读写，锁粒度更细，效率更高，扩容时，阻塞所有的读写操作、并发扩容</p>
+<p>读操作无锁：<br>Node的val和next使用volatile修饰，读写线程对该变量互相可见<br>数组用volatile修饰，保证扩容时被读线程感知</p>
+<h2 id="13、什么是字节码？采用字节码的好处是什么？"><a href="#13、什么是字节码？采用字节码的好处是什么？" class="headerlink" title="13、什么是字节码？采用字节码的好处是什么？"></a>13、什么是字节码？采用字节码的好处是什么？</h2><p>字节码是由Java编译器编译而来的代码，然后由JVM的解释器来将字节码转换为特定系统的机器码执行。因此字节码不面向任何特定的处理器，只面向虚拟机。</p>
+<p>每一种平台的解释器是不同的，但是实现的虚拟机是相同的。Java源程序经过编译器编译后变成字节码，字节码由虚拟机解释执行，虚拟机将每一条要执行的字节码送给解释器，解释器将其翻译成特定机器上的机器码，然后在特定的机器上运行。这也就是解释了Java的编译与解释并存的特点。 Java源代码—-&gt;编译器—-&gt;jvm可执行的Java字节码(即虚拟指令)—-&gt;jvm—-&gt;jvm中解释器—–&gt;机器可执 行的二进制机器码—-&gt;程序运行。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Radish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/05/14/Java%E5%BC%80%E5%8F%91%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/">http://example.com/2024/05/14/Java%E5%BC%80%E5%8F%91%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">萝卜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Tomcat/">Tomcat</a></div><div class="post_share"><div class="social-share" data-image="/../img/jvm.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer=""></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/05/14/Tomcat(%E4%B8%80)-Tomcat%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AE%BE%E8%AE%A1%E7%B2%BE%E9%AB%93%E5%88%86%E6%9E%90/" title="Tomcat(一)——Tomcat整体架构及其设计精髓分析"><img class="cover" src="/../img/jvm.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Tomcat(一)——Tomcat整体架构及其设计精髓分析</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/05/14/Tomcat(%E4%B8%80)-Tomcat%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AE%BE%E8%AE%A1%E7%B2%BE%E9%AB%93%E5%88%86%E6%9E%90/" title="Tomcat(一)——Tomcat整体架构及其设计精髓分析"><img class="cover" src="/../img/jvm.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-05-14</div><div class="title">Tomcat(一)——Tomcat整体架构及其设计精髓分析</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"></div><div class="author-info__name">Radish</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">67</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">愿内心深处的懦弱 不再将我吞噬</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81Java%E5%9F%BA%E7%A1%80"><span class="toc-number">1.</span> <span class="toc-text">一、Java基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">1、面向对象</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.1.1.</span> <span class="toc-text">什么是面向对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%9A%84%E4%B8%89%E7%A7%8D%E7%89%B9%E5%BE%81"><span class="toc-number">1.1.2.</span> <span class="toc-text">面向对象的三种特征</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81JDK%E3%80%81JRM%E3%80%81JVM"><span class="toc-number">1.2.</span> <span class="toc-text">2、JDK、JRM、JVM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81-x3D-x3D-%E5%92%8Cequals%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.3.</span> <span class="toc-text">3、==和equals的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81hashCode%E5%92%8Cequals"><span class="toc-number">1.4.</span> <span class="toc-text">4、hashCode和equals</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81final"><span class="toc-number">1.5.</span> <span class="toc-text">5、final</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6%E3%80%81String%E3%80%81StringBuffer%E3%80%81StringBuilder"><span class="toc-number">1.6.</span> <span class="toc-text">6、String、StringBuffer、StringBuilder</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7%E3%80%81%E9%87%8D%E8%BD%BD%E5%92%8C%E9%87%8D%E5%86%99%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.7.</span> <span class="toc-text">7、重载和重写的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8%E3%80%81%E6%8E%A5%E5%8F%A3%E5%92%8C%E6%8A%BD%E8%B1%A1%E7%B1%BB%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.8.</span> <span class="toc-text">8、接口和抽象类的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9%E3%80%81List%E5%92%8CSet%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.9.</span> <span class="toc-text">9、List和Set的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10%E3%80%81ArrayList%E5%92%8CLinkedList%E5%8C%BA%E5%88%AB"><span class="toc-number">1.10.</span> <span class="toc-text">10、ArrayList和LinkedList区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11%E3%80%81HashMap%E5%92%8CHashTable%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F%E5%85%B6%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.11.</span> <span class="toc-text">11、HashMap和HashTable有什么区别？其底层实现是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12%E3%80%81ConcurrentHashMap%E5%8E%9F%E7%90%86%EF%BC%8Cjdk7%E5%92%8Cjdk8%E7%89%88%E6%9C%AC%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.12.</span> <span class="toc-text">12、ConcurrentHashMap原理，jdk7和jdk8版本的区别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#JDK7"><span class="toc-number">1.12.1.</span> <span class="toc-text">JDK7</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JDK8"><span class="toc-number">1.12.2.</span> <span class="toc-text">JDK8</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%9F%E9%87%87%E7%94%A8%E5%AD%97%E8%8A%82%E7%A0%81%E7%9A%84%E5%A5%BD%E5%A4%84%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.13.</span> <span class="toc-text">13、什么是字节码？采用字节码的好处是什么？</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/05/14/Java%E5%BC%80%E5%8F%91%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/" title="Java开发面试题总结"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java开发面试题总结"></a><div class="content"><a class="title" href="/2024/05/14/Java%E5%BC%80%E5%8F%91%E9%9D%A2%E8%AF%95%E9%A2%98%E6%80%BB%E7%BB%93/" title="Java开发面试题总结">Java开发面试题总结</a><time datetime="2024-05-14T13:06:00.000Z" title="发表于 2024-05-14 21:06:00">2024-05-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/14/Tomcat(%E4%B8%80)-Tomcat%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AE%BE%E8%AE%A1%E7%B2%BE%E9%AB%93%E5%88%86%E6%9E%90/" title="Tomcat(一)——Tomcat整体架构及其设计精髓分析"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Tomcat(一)——Tomcat整体架构及其设计精髓分析"></a><div class="content"><a class="title" href="/2024/05/14/Tomcat(%E4%B8%80)-Tomcat%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%85%B6%E8%AE%BE%E8%AE%A1%E7%B2%BE%E9%AB%93%E5%88%86%E6%9E%90/" title="Tomcat(一)——Tomcat整体架构及其设计精髓分析">Tomcat(一)——Tomcat整体架构及其设计精髓分析</a><time datetime="2024-05-14T13:06:00.000Z" title="发表于 2024-05-14 21:06:00">2024-05-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E5%85%AB)%E2%80%94%E2%80%94%E8%AE%A9Java%E6%80%A7%E8%83%BD%E6%8F%90%E5%8D%87%E7%9A%84JIT%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" title="深入理解JVM(八)——让Java性能提升的JIT深度剖析"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="深入理解JVM(八)——让Java性能提升的JIT深度剖析"></a><div class="content"><a class="title" href="/2024/05/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E5%85%AB)%E2%80%94%E2%80%94%E8%AE%A9Java%E6%80%A7%E8%83%BD%E6%8F%90%E5%8D%87%E7%9A%84JIT%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/" title="深入理解JVM(八)——让Java性能提升的JIT深度剖析">深入理解JVM(八)——让Java性能提升的JIT深度剖析</a><time datetime="2024-05-13T13:22:00.000Z" title="发表于 2024-05-13 21:22:00">2024-05-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%83)%E2%80%94%E2%80%94%E4%B8%BAJava%E5%BC%80%E7%96%86%E6%8B%93%E5%9C%9F%E7%9A%84ZGC%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/" title="深入理解JVM(七)——为Java开疆拓土的ZGC深度剖析"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="深入理解JVM(七)——为Java开疆拓土的ZGC深度剖析"></a><div class="content"><a class="title" href="/2024/05/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E4%B8%83)%E2%80%94%E2%80%94%E4%B8%BAJava%E5%BC%80%E7%96%86%E6%8B%93%E5%9C%9F%E7%9A%84ZGC%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%20-%20%E5%89%AF%E6%9C%AC/" title="深入理解JVM(七)——为Java开疆拓土的ZGC深度剖析">深入理解JVM(七)——为Java开疆拓土的ZGC深度剖析</a><time datetime="2024-05-13T13:10:00.000Z" title="发表于 2024-05-13 21:10:00">2024-05-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/10/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E5%85%AD)%E2%80%94%E2%80%94JVM%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98%E5%8F%8A%E5%B8%B8%E9%87%8F%E6%B1%A0%E8%AF%A6%E8%A7%A3/" title="深入理解JVM(六)——JVM调优实战及常量池详解"><img src="/../img/jvm.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="深入理解JVM(六)——JVM调优实战及常量池详解"></a><div class="content"><a class="title" href="/2024/05/10/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM(%E5%85%AD)%E2%80%94%E2%80%94JVM%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98%E5%8F%8A%E5%B8%B8%E9%87%8F%E6%B1%A0%E8%AF%A6%E8%A7%A3/" title="深入理解JVM(六)——JVM调优实战及常量池详解">深入理解JVM(六)——JVM调优实战及常量池详解</a><time datetime="2024-05-10T13:43:00.000Z" title="发表于 2024-05-10 21:43:00">2024-05-10</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent"><div id="footer-wrap"><div class="copyright">©2023 - 2024 By Radish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async="" data-pjax="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
